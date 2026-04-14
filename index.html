@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>INJAMAM — Personal Universe</title><!-- ← Change name -->
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    /* ── HOME-SPECIFIC STYLES ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 100px 40px 60px;
+      position: relative;
+    }
+
+    /* Animated speed lines */
+    .speed-lines {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+    }
+    .speed-line {
+      position: absolute; top: 50%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(10,132,255,0.4), transparent);
+      animation: speed-pass 4s ease-in-out infinite;
+      transform-origin: left center;
+    }
+    @keyframes speed-pass {
+      0%   { left: -100%; width: 30%; opacity: 0; }
+      20%  { opacity: 1; }
+      80%  { opacity: 1; }
+      100% { left: 150%; width: 10%; opacity: 0; }
+    }
+
+    .hero-eyebrow {
+      font-family: var(--font-ui);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--blue-core);
+      margin-bottom: 20px;
+      animation: float-up 0.8s ease forwards;
+    }
+
+    .hero-name {
+      font-family: var(--font-display);
+      font-size: clamp(5rem, 15vw, 12rem);
+      letter-spacing: 0.12em;
+      line-height: 0.9;
+      color: var(--white);
+      margin-bottom: 10px;
+      animation: float-up 0.8s 0.1s ease both;
+      position: relative;
+    }
+    .hero-name .accent { color: var(--blue-core); }
+
+    .hero-tagline {
+      font-family: var(--font-ui);
+      font-size: clamp(0.9rem, 2vw, 1.1rem);
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--silver);
+      margin-bottom: 60px;
+      animation: float-up 0.8s 0.2s ease both;
+    }
+
+    /* ── MODE CARDS GRID ── */
+    .mode-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      max-width: 1100px;
+      width: 100%;
+      animation: float-up 0.8s 0.35s ease both;
+    }
+
+    .mode-card {
+      position: relative;
+      border: 1px solid rgba(10,132,255,0.2);
+      border-radius: var(--radius-lg);
+      background: var(--gradient-card);
+      padding: 30px 24px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.4s cubic-bezier(.2,.8,.2,1),
+                  box-shadow 0.4s ease,
+                  border-color 0.4s ease;
+      text-align: left;
+    }
+    .mode-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 30% 30%, rgba(10,132,255,0.12) 0%, transparent 70%);
+      opacity: 0; transition: opacity 0.4s;
+    }
+    .mode-card::after {
+      content: '';
+      position: absolute; top: 0; left: -100%;
+      width: 60%; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--blue-core), transparent);
+      transition: left 0.5s ease;
+    }
+    .mode-card:hover { transform: translateY(-8px) scale(1.01); box-shadow: var(--shadow-hover); border-color: rgba(10,132,255,0.6); }
+    .mode-card:hover::before { opacity: 1; }
+    .mode-card:hover::after  { left: 100%; }
+
+    .mode-card-icon {
+      font-size: 2.2rem;
+      margin-bottom: 16px;
+      display: block;
+      filter: drop-shadow(0 0 8px rgba(10,132,255,0.5));
+    }
+    .mode-card-label {
+      font-family: var(--font-ui);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--blue-core);
+      margin-bottom: 6px;
+    }
+    .mode-card-title {
+      font-family: var(--font-display);
+      font-size: 1.6rem;
+      letter-spacing: 0.08em;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+    .mode-card-sub {
+      font-size: 0.78rem;
+      color: var(--text-body);
+      line-height: 1.5;
+    }
+    .mode-card-arrow {
+      position: absolute; bottom: 20px; right: 20px;
+      font-family: var(--font-ui);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--blue-dim);
+      transition: color 0.3s;
+    }
+    .mode-card:hover .mode-card-arrow { color: var(--blue-glow); }
+
+    /* Wide card spans full width */
+    .mode-card.wide { grid-column: span 2; }
+
+    .home-footer {
+      padding: 40px;
+      text-align: center;
+      font-family: var(--font-ui);
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .footer-heart {
+      display: inline-block;
+      margin: 0 4px;
+      color: var(--blue-core);
+      text-decoration: none;
+      transition: transform 0.2s ease, color 0.2s ease, text-shadow 0.2s ease;
+    }
+
+    .footer-heart:hover {
+      color: var(--blue-glow);
+      transform: scale(1.15);
+      text-shadow: 0 0 10px rgba(10,132,255,0.45);
+    }
+
+    @media (max-width: 900px) {
+      .mode-grid { grid-template-columns: repeat(2, 1fr); }
+      .mode-card.wide { grid-column: span 1; }
+    }
+    @media (max-width: 600px) {
+      .mode-grid { grid-template-columns: 1fr; }
+      .hero { padding: 80px 20px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Background effects -->
+<div class="bg-grid"></div>
+<canvas id="particles-canvas"></canvas>
+<div class="speed-lines" id="speed-lines"></div>
+
+<!-- Navigation -->
+<nav class="nav">
+  <div class="nav-logo">I<span>N</span>JAMAM</div><!-- ← Edit logo letters -->
+  <ul class="nav-links">
+    <li><a href="index.html"      class="active">Home</a></li>
+    <li><a href="garage.html">Garage</a></li>
+    <li><a href="sports.html">Match Day</a></li>
+    <li><a href="studio.html">Studio</a></li>
+    <li><a href="travel.html">Travel</a></li>
+    <li><a href="profile.html">Profile</a></li>
+    <li><a href="highlights.html">Highlights</a></li>
+  </ul>
+  <button class="nav-menu-btn" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Hero -->
+<div class="page-wrapper">
+  <section class="hero">
+    <p class="hero-eyebrow">Welcome to the universe of</p>
+    <!-- ↓ Edit the name letters below -->
+    <h1 class="hero-name">I<span class="accent">N</span>JAMAM</h1>
+    <p class="hero-tagline">Car Enthusiast · Athlete · Artist · Explorer · And More</p><!-- ← Edit tagline -->
+
+    <!-- Mode Cards -->
+    <div class="mode-grid">
+
+      <a href="garage.html" class="mode-card">
+        <span class="mode-card-icon">🏎️</span>
+        <div class="mode-card-label">Mode 01</div>
+        <div class="mode-card-title">Garage</div>
+        <div class="mode-card-sub">Dream cars and the pursuit of speed.</div>
+        <div class="mode-card-arrow">Enter →</div>
+      </a>
+
+      <a href="sports.html" class="mode-card">
+        <span class="mode-card-icon">⚽</span>
+        <div class="mode-card-label">Mode 02</div>
+        <div class="mode-card-title">Match Day</div>
+        <div class="mode-card-sub">On the pitch, on the court, or on the track — always competing.</div>
+        <div class="mode-card-arrow">Enter →</div>
+      </a>
+
+      <a href="studio.html" class="mode-card">
+        <span class="mode-card-icon">🎤</span>
+        <div class="mode-card-label">Mode 03</div>
+        <div class="mode-card-title">Studio</div>
+        <div class="mode-card-sub">Where music is made and feelings are recorded.</div>
+        <div class="mode-card-arrow">Enter →</div>
+      </a>
+
+      <a href="travel.html" class="mode-card wide">
+        <span class="mode-card-icon">✈️</span>
+        <div class="mode-card-label">Mode 04</div>
+        <div class="mode-card-title">Travel</div>
+        <div class="mode-card-sub">Cities, memories, and destinations that left a mark.</div>
+        <div class="mode-card-arrow">Enter →</div>
+      </a>
+
+      <a href="profile.html" class="mode-card">
+        <span class="mode-card-icon">🎯</span>
+        <div class="mode-card-label">Mode 05</div>
+        <div class="mode-card-title">Profile</div>
+        <div class="mode-card-sub">Identity, and everything that defines me.</div>
+        <div class="mode-card-arrow">Enter →</div>
+      </a>
+
+      <a href="highlights.html" class="mode-card wide">
+        <span class="mode-card-icon">🏆</span>
+        <div class="mode-card-label">Mode 06</div>
+        <div class="mode-card-title">Highlights</div>
+        <div class="mode-card-sub">Trophy room of moments, achievements, and milestones.</div>
+        <div class="mode-card-arrow">Enter →</div>
+      </a>
+
+
+    </div>
+  </section>
+
+  <footer class="home-footer">
+    Built with love
+    <a href="admin.html" class="footer-heart" aria-label="Open admin">♥</a>
+    · A personalized universe
+  </footer>
+</div>
+
+<script src="data.js"></script>
+<script src="scripts.js"></script>
+<script>
+  // Generate speed lines
+  const container = document.getElementById('speed-lines');
+  for (let i = 0; i < 8; i++) {
+    const line = document.createElement('div');
+    line.className = 'speed-line';
+    line.style.top  = `${15 + i * 10}%`;
+    line.style.width = `${20 + Math.random() * 20}%`;
+    line.style.animationDelay = `${i * 0.5}s`;
+    line.style.animationDuration = `${3 + Math.random() * 3}s`;
+    container.appendChild(line);
+  }
+</script>
+</body>
+</html>

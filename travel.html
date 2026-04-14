@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Travel Diaries — Destinations</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300;1,600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg: #05070c;
+      --panel: #0b1018;
+      --panel2: #0f1724;
+      --white: #f5f8ff;
+      --text-mid: #aab4c8;
+      --text-light: #7f8aa3;
+
+      --blue: #00d4ff;
+      --blue-2: #007eff;
+      --blue-soft: rgba(0,212,255,0.12);
+      --blue-soft-2: rgba(0,126,255,0.14);
+      --glass: rgba(255,255,255,0.08);
+      --glass-strong: rgba(255,255,255,0.12);
+      --glass-border: rgba(255,255,255,0.18);
+
+      --shadow-soft: 0 8px 40px rgba(0,0,0,0.22);
+      --shadow-card: 0 10px 28px rgba(0,0,0,0.24);
+      --radius-card: 20px;
+      --radius-pill: 100px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      color: var(--white);
+      overflow-x: hidden;
+      background: var(--bg);
+    }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; border: none; font-family: inherit; }
+    img { display: block; max-width: 100%; }
+
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--blue-2); border-radius: 3px; }
+
+    /* ── FIXED VIDEO BACKGROUND ── */
+    .video-bg-wrap {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+      background: #000;
+    }
+
+    .video-bg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      filter: brightness(.72) saturate(.95) contrast(1.03);
+      transform: scale(1);
+    }
+
+    .video-overlay {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(to bottom,
+          rgba(3,7,14,0.36) 0%,
+          rgba(3,7,14,0.18) 35%,
+          rgba(3,7,14,0.22) 60%,
+          rgba(3,7,14,0.58) 100%
+        ),
+        radial-gradient(ellipse 70% 50% at 50% 0%, rgba(0,126,255,0.12) 0%, transparent 55%),
+        radial-gradient(ellipse 40% 35% at 90% 20%, rgba(0,212,255,0.07) 0%, transparent 50%),
+        radial-gradient(ellipse 30% 25% at 10% 80%, rgba(0,212,255,0.05) 0%, transparent 50%);
+    }
+
+    .grid-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: .16;
+    }
+
+    /* ── NAVIGATION ── */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 36px;
+      background: rgba(4,8,14,0.20);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: background 0.35s, box-shadow 0.35s, border-color 0.35s;
+    }
+
+    .nav.scrolled {
+      background: rgba(4,8,14,0.82);
+      box-shadow: 0 6px 30px rgba(0,0,0,0.18);
+      border-bottom-color: rgba(0,212,255,0.12);
+    }
+
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: var(--white);
+      letter-spacing: 0.06em;
+    }
+
+    .nav-logo span {
+      font-style: italic;
+      color: var(--blue);
+      text-shadow: 0 0 12px rgba(0,212,255,0.35);
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 0;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.82);
+      padding: 8px 14px;
+      border-radius: 6px;
+      transition: color 0.25s, background 0.25s;
+    }
+
+    .nav-links a:hover {
+      color: var(--white);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .nav-links a.active {
+      color: var(--blue);
+      text-shadow: 0 0 12px rgba(0,212,255,0.35);
+    }
+
+    .nav-menu-btn {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      padding: 6px;
+    }
+
+    .nav-menu-btn span {
+      display: block;
+      width: 22px;
+      height: 1.5px;
+      background: var(--white);
+    }
+
+    /* ── PAGE LAYERS ── */
+    .page {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 110px 20px 130px;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .hero-eyebrow {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.72);
+      margin-bottom: 20px;
+      animation: rise 1s ease both;
+    }
+
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3.5rem, 10vw, 8rem);
+      font-weight: 900;
+      line-height: 0.92;
+      color: #fff;
+      letter-spacing: -0.01em;
+      margin-bottom: 18px;
+      animation: rise 1s 0.1s ease both;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--blue);
+      text-shadow: 0 0 18px rgba(0,212,255,0.20);
+    }
+
+    .hero-sub {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1rem, 2.5vw, 1.4rem);
+      font-style: italic;
+      color: rgba(255,255,255,0.82);
+      letter-spacing: 0.04em;
+      animation: rise 1s 0.2s ease both;
+    }
+
+    .hero-stats {
+      position: absolute;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(130px, 1fr));
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow:
+        0 8px 24px rgba(0,0,0,0.18),
+        0 0 18px rgba(0,212,255,0.04);
+      animation: rise 1s 0.4s ease both;
+    }
+
+    .hero-stat-pill {
+      min-width: 0;
+      padding: 14px 26px 12px;
+      text-align: center;
+      color: #fff;
+      background: transparent;
+      border: none;
+      border-right: 1px solid rgba(255,255,255,0.14);
+    }
+
+    .hero-stat-pill:last-child {
+      border-right: none;
+    }
+
+    .pill-number {
+      display: block;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .pill-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      opacity: 0.75;
+      margin-top: 2px;
+    }
+
+    .scroll-hint {
+      position: absolute;
+      bottom: 36px;
+      right: 36px;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      animation: rise 1s 0.5s ease both;
+    }
+
+    .scroll-hint span {
+      font-size: 0.6rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.6);
+      writing-mode: vertical-rl;
+    }
+
+    .scroll-line {
+      width: 1px;
+      height: 40px;
+      background: linear-gradient(to bottom, rgba(0,212,255,0.85), transparent);
+      animation: scroll-pulse 2s ease infinite;
+      box-shadow: 0 0 10px rgba(0,212,255,0.20);
+    }
+
+    @keyframes scroll-pulse {
+      0%, 100% { opacity: 0.4; height: 40px; }
+      50% { opacity: 1; height: 55px; }
+    }
+
+    /* ── SECTION INTRO over video too ── */
+    .section-intro-wrap {
+      position: relative;
+      z-index: 2;
+      padding: 0 48px 34px;
+      margin-top: -30px;
+    }
+
+    .section-intro {
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.16);
+      border-radius: 26px;
+      box-shadow: 0 12px 42px rgba(0,0,0,0.18);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      padding: 36px 36px 34px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 30px;
+    }
+
+    .section-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-label::before {
+      content: '';
+      display: block;
+      width: 24px;
+      height: 1px;
+      background: var(--blue);
+      box-shadow: 0 0 10px rgba(0,212,255,0.24);
+    }
+
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.2rem, 5vw, 3.8rem);
+      font-weight: 700;
+      line-height: 1.05;
+      color: var(--white);
+    }
+
+    .section-title em {
+      font-style: italic;
+      color: var(--blue);
+      text-shadow: 0 0 14px rgba(0,212,255,0.16);
+    }
+
+    .section-desc {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem;
+      font-style: italic;
+      color: rgba(255,255,255,0.72);
+      margin-top: 10px;
+      max-width: 360px;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .filter-btn {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      padding: 8px 18px;
+      border-radius: var(--radius-pill);
+      border: 1.5px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.05);
+      color: rgba(255,255,255,0.78);
+      transition: all 0.25s;
+    }
+
+    .filter-btn:hover {
+      border-color: rgba(0,212,255,0.40);
+      color: var(--blue);
+      background: rgba(0,212,255,0.08);
+    }
+
+    .filter-btn.active {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: #031019;
+      box-shadow: 0 0 20px rgba(0,212,255,0.22);
+    }
+
+    /* ── DESTINATIONS GRID ── */
+    .dest-grid {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+      padding: 14px 48px 100px;
+    }
+
+    .dest-card {
+      position: relative;
+      border-radius: var(--radius-card);
+      overflow: hidden;
+      cursor: pointer;
+      background: rgba(10,16,24,0.78);
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: var(--shadow-card);
+      transition: transform 0.4s cubic-bezier(.2,.8,.2,1), box-shadow 0.4s, border-color 0.3s;
+    }
+
+    .dest-card:hover {
+      transform: translateY(-10px);
+      box-shadow:
+        0 20px 60px rgba(0,0,0,0.32),
+        0 0 34px rgba(0,212,255,0.10);
+      border-color: rgba(0,212,255,0.18);
+    }
+
+    .dest-img-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 4/3;
+      overflow: hidden;
+    }
+
+    .dest-cover {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.6s cubic-bezier(.2,.8,.2,1);
+    }
+
+    .dest-card:hover .dest-cover { transform: scale(1.07); }
+
+    .dest-img-wrap::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(4,8,14,0.68) 0%, transparent 55%);
+    }
+
+    .dest-country-badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      z-index: 2;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: var(--radius-pill);
+      padding: 5px 14px;
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .dest-revisit-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      z-index: 2;
+      background: rgba(0,212,255,0.22);
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(8px);
+      border-radius: var(--radius-pill);
+      padding: 5px 12px;
+      font-size: 0.58rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: #fff;
+    }
+
+    .dest-year-chip {
+      position: absolute;
+      bottom: 14px;
+      right: 14px;
+      z-index: 2;
+      font-family: 'Playfair Display', serif;
+      font-size: 0.78rem;
+      font-style: italic;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .dest-body {
+      padding: 20px 22px 22px;
+    }
+
+    .dest-place {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 4px;
+      line-height: 1.1;
+    }
+
+    .dest-meta {
+      font-size: 0.72rem;
+      color: var(--text-light);
+      letter-spacing: 0.04em;
+      margin-bottom: 14px;
+    }
+
+    .dest-tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .dest-tag {
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      background: rgba(0,212,255,0.08);
+      color: var(--blue);
+      border: 1px solid rgba(0,212,255,0.18);
+    }
+
+    .dest-arrow {
+      position: absolute;
+      bottom: 22px;
+      right: 22px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.10);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      color: var(--white);
+      transition: background 0.3s, transform 0.3s, color 0.3s;
+    }
+
+    .dest-card:hover .dest-arrow {
+      background: var(--blue);
+      color: #041019;
+      transform: rotate(45deg);
+    }
+
+    .empty-state {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 80px 40px;
+      background: rgba(255,255,255,0.05);
+      border: 1px dashed rgba(255,255,255,0.12);
+      border-radius: 18px;
+    }
+
+    .empty-state-icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.55; }
+
+    .empty-state p {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem;
+      font-style: italic;
+      color: rgba(255,255,255,0.72);
+    }
+
+    /* ── MODAL ── */
+    .travel-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(3,7,14,0.78);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 30px 20px;
+      overflow-y: auto;
+    }
+
+    .travel-modal.open { display: flex; }
+
+    .tm-panel {
+      background: #08111b;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 860px;
+      overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.42);
+      position: relative;
+      animation: modal-in 0.4s cubic-bezier(.2,.8,.2,1) both;
+    }
+
+    @keyframes modal-in {
+      from { opacity: 0; transform: translateY(30px) scale(0.97); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .tm-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 10;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(0,0,0,0.1);
+      color: #09131d;
+      font-size: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      backdrop-filter: blur(8px);
+    }
+
+    .tm-close:hover {
+      background: var(--blue);
+      color: #041019;
+      border-color: transparent;
+    }
+
+    .tm-hero {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16/7;
+      overflow: hidden;
+    }
+
+    @media (max-width: 600px) { .tm-hero { aspect-ratio: 4/3; } }
+
+    .tm-hero img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .tm-hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(3,7,14,0.86) 0%, transparent 55%);
+    }
+
+    .tm-hero-content {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 24px 32px;
+      z-index: 1;
+    }
+
+    .tm-country {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 5px;
+    }
+
+    .tm-place {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 5vw, 3.5rem);
+      font-weight: 900;
+      color: #fff;
+      line-height: 1;
+    }
+
+    .tm-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .tm-badge {
+      font-size: 0.62rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      padding: 5px 14px;
+      border-radius: var(--radius-pill);
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: #fff;
+      backdrop-filter: blur(8px);
+    }
+
+    .tm-badge.revisit {
+      background: rgba(0,212,255,0.16);
+      border-color: rgba(0,212,255,0.24);
+    }
+
+    .tm-body { padding: 28px 32px 32px; }
+
+    .tm-detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 28px;
+    }
+
+    @media (max-width: 600px) { .tm-detail-grid { grid-template-columns: 1fr; } }
+
+    .tm-detail-box {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 16px 18px;
+    }
+
+    .tm-box-lbl {
+      font-size: 0.6rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 6px;
+    }
+
+    .tm-box-val {
+      font-size: 0.9rem;
+      color: var(--text-mid);
+      line-height: 1.6;
+    }
+
+    .tm-gallery-title {
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tm-gallery-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,0.08);
+    }
+
+    .photo-gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 8px;
+    }
+
+    .photo-gallery img {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: transform 0.25s, opacity 0.25s, border-color 0.25s;
+      border: 2px solid transparent;
+    }
+
+    .photo-gallery img:hover {
+      transform: scale(1.04);
+      border-color: var(--blue);
+      opacity: 0.92;
+    }
+
+    .no-photos {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-size: 1rem;
+      color: rgba(255,255,255,0.6);
+      padding: 20px;
+      text-align: center;
+      border: 1px dashed rgba(255,255,255,0.10);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.03);
+    }
+
+    /* ── LIGHTBOX ── */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: rgba(0,0,0,0.95);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lightbox.open { display: flex; }
+
+    .lightbox img {
+      max-width: 92%;
+      max-height: 92vh;
+      border-radius: 12px;
+      object-fit: contain;
+    }
+
+    .lb-close {
+      position: absolute;
+      top: 20px; right: 24px;
+      font-size: 2rem;
+      color: rgba(255,255,255,0.5);
+      cursor: pointer;
+      transition: color 0.2s;
+      line-height: 1;
+    }
+
+    .lb-close:hover { color: #fff; }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    @keyframes card-in {
+      from { opacity: 0; transform: translateY(28px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    /* ── MOBILE ── */
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+
+      .nav-links.open {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        top: 64px; left: 0; right: 0;
+        background: rgba(4,8,14,0.95);
+        padding: 16px 24px 24px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.18);
+        backdrop-filter: blur(20px);
+        gap: 4px;
+      }
+
+      .nav-links.open a { color: var(--white); padding: 10px 0; }
+      .nav-menu-btn { display: flex; }
+
+      .section-intro-wrap {
+        padding: 0 24px 24px;
+      }
+
+      .section-intro {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 28px 24px;
+      }
+
+      .dest-grid { padding: 14px 24px 80px; }
+      .filter-row { justify-content: flex-start; }
+    }
+
+    @media (max-width: 600px) {
+      .hero {
+        padding: 96px 18px clamp(118px, 16svh, 142px);
+      }
+
+      .hero-stats {
+        bottom: clamp(62px, 10svh, 86px);
+        left: 20%;
+        right: auto;
+        transform: translateX(-20%);
+        grid-template-columns: repeat(2, minmax(94px, 1fr));
+        width: min(220px, calc(100% - 88px));
+        border-radius: 22px;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        justify-content: center;
+      }
+
+      .hero-stat-pill {
+        padding: 10px 10px 9px;
+        border-right: 1px solid rgba(255,255,255,0.14);
+      }
+
+      .hero-stat-pill:nth-child(3) {
+        display: none;
+      }
+
+      .hero-stat-pill:nth-child(2) {
+        border-right: none;
+      }
+
+      .pill-number {
+        font-size: 1.1rem;
+      }
+
+      .pill-label {
+        font-size: 0.5rem;
+        letter-spacing: 0.16em;
+      }
+
+      .scroll-hint {
+        display: none;
+      }
+
+      .section-intro-wrap {
+        padding: 0 18px 18px;
+        margin-top: -56px;
+      }
+
+      .section-intro {
+        padding: 22px 18px 26px;
+        border-radius: 24px;
+        align-items: flex-start;
+      }
+
+      .section-title {
+        font-size: clamp(1.9rem, 9vw, 2.5rem);
+        line-height: 1.02;
+      }
+
+      .section-desc {
+        font-size: 0.98rem;
+        max-width: none;
+      }
+
+      .filter-row {
+        gap: 8px;
+      }
+
+      .filter-btn {
+        font-size: 0.62rem;
+        padding: 7px 14px;
+      }
+
+      .dest-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        padding: 0 18px 70px;
+        margin-top: -2px;
+      }
+
+      .dest-card {
+        border-radius: 14px;
+      }
+
+      .dest-img-wrap {
+        aspect-ratio: 3 / 4;
+      }
+
+      .dest-country-badge {
+        top: 8px;
+        left: 8px;
+        padding: 4px 8px;
+        font-size: 0.42rem;
+        letter-spacing: 0.08em;
+        max-width: calc(100% - 16px);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .dest-revisit-badge {
+        top: 8px;
+        right: 8px;
+        padding: 4px 8px;
+        font-size: 0.4rem;
+        letter-spacing: 0.06em;
+      }
+
+      .dest-year-chip {
+        bottom: 8px;
+        right: 8px;
+        font-size: 0.58rem;
+      }
+
+      .dest-body {
+        padding: 10px 10px 12px;
+      }
+
+      .dest-place {
+        font-size: 0.92rem;
+        margin-bottom: 2px;
+      }
+
+      .dest-meta {
+        font-size: 0.52rem;
+        margin-bottom: 8px;
+      }
+
+      .dest-tags {
+        gap: 4px;
+      }
+
+      .dest-tag {
+        font-size: 0.44rem;
+        padding: 3px 7px;
+        letter-spacing: 0.04em;
+      }
+
+      .dest-arrow {
+        width: 24px;
+        height: 24px;
+        right: 10px;
+        bottom: 10px;
+        font-size: 0.62rem;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .hero-stats {
+        width: min(214px, calc(100% - 78px));
+      }
+
+      .pill-number {
+        font-size: 1rem;
+      }
+
+      .pill-label {
+        font-size: 0.47rem;
+      }
+
+      .section-intro-wrap {
+        padding: 0 12px 14px;
+        margin-top: -66px;
+      }
+
+      .section-intro {
+        padding: 20px 16px 24px;
+        border-radius: 22px;
+      }
+
+      .section-label {
+        font-size: 0.56rem;
+        letter-spacing: 0.22em;
+      }
+
+      .section-title {
+        font-size: 1.7rem;
+      }
+
+      .section-desc {
+        font-size: 0.92rem;
+      }
+
+      .filter-btn {
+        font-size: 0.58rem;
+        padding: 7px 12px;
+      }
+
+      .dest-grid {
+        gap: 8px;
+        padding: 0 12px 64px;
+      }
+
+      .dest-body {
+        padding: 8px 8px 10px;
+      }
+
+      .dest-place {
+        font-size: 0.8rem;
+      }
+
+      .dest-meta {
+        font-size: 0.48rem;
+        margin-bottom: 6px;
+      }
+
+      .dest-tag {
+        font-size: 0.4rem;
+        padding: 2px 6px;
+      }
+
+      .dest-country-badge,
+      .dest-revisit-badge {
+        font-size: 0.38rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="video-bg-wrap">
+  <video class="video-bg" id="travel-video" autoplay muted loop playsinline preload="auto">
+    <source src="videos/travel-bg.mp4" type="video/mp4">
+  </video>
+  <div class="video-overlay"></div>
+</div>
+
+<div class="grid-overlay"></div>
+
+<nav class="nav" id="nav">
+  <a class="nav-logo" href="index.html">I<span>N</span>JAMAM</a>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="garage.html">Garage</a></li>
+    <li><a href="sports.html">Match Day</a></li>
+    <li><a href="studio.html">Studio</a></li>
+    <li><a href="travel.html" class="active">Travel</a></li>
+    <li><a href="profile.html">Profile</a></li>
+    <li><a href="highlights.html">Highlights</a></li>
+  </ul>
+  <button class="nav-menu-btn" id="menu-btn" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="page">
+  <section class="hero">
+    <div class="hero-content">
+      <p class="hero-eyebrow">The world through my eyes</p>
+      <h1 class="hero-title">Travel<br/><em>Diaries</em></h1>
+      <p class="hero-sub">Cities that left their mark on the soul.</p>
+    </div>
+
+    <div class="hero-stats" id="hero-stats">
+      <div class="hero-stat-pill">
+        <span class="pill-number" id="stat-places">—</span>
+        <span class="pill-label">Places</span>
+      </div>
+      <div class="hero-stat-pill">
+        <span class="pill-number" id="stat-countries">—</span>
+        <span class="pill-label">Countries</span>
+      </div>
+      <div class="hero-stat-pill">
+        <span class="pill-number" id="stat-revisit">—</span>
+        <span class="pill-label">Would Return</span>
+      </div>
+    </div>
+
+    <div class="scroll-hint">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <div class="section-intro-wrap">
+    <div class="section-intro">
+      <div class="section-intro-left">
+        <div class="section-label">Mode 04 / Travel</div>
+        <h2 class="section-title">Every destination<br/><em>tells a story.</em></h2>
+        <p class="section-desc">Adventures, memories, and the places that changed everything.</p>
+      </div>
+      <div class="filter-row" id="filter-row">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="revisit">Would Return ♡</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dest-grid" id="dest-grid"></div>
+</div>
+
+<div class="travel-modal" id="travel-modal">
+  <div class="tm-panel">
+    <button class="tm-close" onclick="closeModal()">✕</button>
+    <div class="tm-hero">
+      <img id="tm-hero-img" src="" alt=""/>
+      <div class="tm-hero-content">
+        <div class="tm-country" id="tm-country"></div>
+        <div class="tm-place" id="tm-place"></div>
+        <div class="tm-badges" id="tm-badges"></div>
+      </div>
+    </div>
+    <div class="tm-body">
+      <div class="tm-detail-grid" id="tm-details"></div>
+      <div id="tm-gallery"></div>
+    </div>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <div class="lb-close">✕</div>
+  <img id="lb-img" src="" alt=""/>
+</div>
+
+<script src="db.js"></script>
+<script>
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 80);
+  });
+
+  document.getElementById('menu-btn').addEventListener('click', () => {
+    document.getElementById('nav-links').classList.toggle('open');
+  });
+
+  function buildStats(items) {
+    document.getElementById('stat-places').textContent = items.length;
+    const countries = new Set(items.map(i => i.country).filter(Boolean));
+    document.getElementById('stat-countries').textContent = countries.size;
+    document.getElementById('stat-revisit').textContent = items.filter(i => i.revisit).length;
+  }
+
+  const grid = document.getElementById('dest-grid');
+  let allItems = [];
+
+  function buildTravel(items) {
+    grid.innerHTML = '';
+    if (!items.length) {
+      grid.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">✈️</div>
+          <p>No destinations added yet. Visit the admin portal to add the first trip!</p>
+        </div>`;
+      return;
+    }
+
+    items.forEach((dest, i) => {
+      const card = document.createElement('div');
+      card.className = 'dest-card';
+      card.dataset.revisit = dest.revisit ? 'true' : 'false';
+      card.style.animation = `card-in 0.5s ${i * 0.07}s ease both`;
+      card.innerHTML = `
+        <div class="dest-img-wrap">
+          <img class="dest-cover" src="${dest.coverImage}" alt="${dest.place}" loading="lazy"/>
+          <div class="dest-country-badge">${dest.country || ''}</div>
+          ${dest.revisit ? '<div class="dest-revisit-badge">♡ Would Return</div>' : ''}
+          ${dest.year ? `<div class="dest-year-chip">'${String(dest.year).slice(-2)}</div>` : ''}
+        </div>
+        <div class="dest-body">
+          <div class="dest-place">${dest.place}</div>
+          <div class="dest-meta">${[dest.country, dest.year].filter(Boolean).join(' · ')}</div>
+          <div class="dest-tags">
+            ${(dest.tags || []).map(t => `<span class="dest-tag">${t}</span>`).join('')}
+          </div>
+        </div>
+        <div class="dest-arrow">↗</div>
+      `;
+      card.addEventListener('click', () => openModal(dest));
+      grid.appendChild(card);
+    });
+  }
+
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const f = btn.dataset.filter;
+      const filtered = f === 'revisit' ? allItems.filter(d => d.revisit) : allItems;
+      buildTravel(filtered);
+    });
+  });
+
+  function openModal(dest) {
+    document.getElementById('tm-hero-img').src = dest.coverImage;
+    document.getElementById('tm-place').textContent = dest.place;
+    document.getElementById('tm-country').textContent =
+      [dest.country, dest.year].filter(Boolean).join(' · ');
+
+    document.getElementById('tm-badges').innerHTML = [
+      ...(dest.tags || []).map(t => `<span class="tm-badge">${t}</span>`),
+      dest.revisit ? `<span class="tm-badge revisit">♡ Would Return</span>` : '',
+    ].join('');
+
+    const boxes = [
+      { l: 'Trip Note',        v: dest.note || '—' },
+      { l: 'Favourite Moment', v: dest.favoriteMoment || '—' },
+      { l: 'Best Food',        v: dest.bestFood || '—' },
+      { l: 'Status',           v: dest.revisit ? 'Would go back in a heartbeat' : 'Once was enough' },
+    ];
+
+    document.getElementById('tm-details').innerHTML = boxes.map(b => `
+      <div class="tm-detail-box">
+        <div class="tm-box-lbl">${b.l}</div>
+        <div class="tm-box-val">${b.v}</div>
+      </div>`).join('');
+
+    const photos = (dest.photos || []).slice(0, 10);
+    document.getElementById('tm-gallery').innerHTML = photos.length ? `
+      <div class="tm-gallery-title">Trip Gallery (${photos.length})</div>
+      <div class="photo-gallery">
+        ${photos.map(p => `<img src="${p}" alt="" loading="lazy" onclick="openLightbox('${p}')"/>`).join('')}
+      </div>` :
+      `<div class="no-photos">No photos added yet — add them through the admin portal.</div>`;
+
+    document.getElementById('travel-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('travel-modal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function openLightbox(src) {
+    document.getElementById('lb-img').src = src;
+    document.getElementById('lightbox').classList.add('open');
+  }
+
+  function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+
+  document.getElementById('travel-modal').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeModal();
+      closeLightbox();
+    }
+  });
+
+  async function initTravel(){
+    try{
+      allItems = await DB.getTravel();
+      buildStats(allItems);
+      buildTravel(allItems);
+    }catch(err){
+      console.error(err);
+      allItems = [];
+      buildStats(allItems);
+      buildTravel(allItems);
+      document.getElementById('dest-grid').innerHTML = '<div style="color:rgba(255,255,255,.4);padding:40px 20px;grid-column:1/-1;text-align:center;">Failed to load travel data.</div>';
+    }
+  }
+
+  initTravel();
+</script>
+</body>
+</html>

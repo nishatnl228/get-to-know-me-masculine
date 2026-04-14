@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Highlights — Achievements</title>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    /* ── HIGHLIGHTS-SPECIFIC ── */
+    .trophy-bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 50% 50% at 50% 60%, rgba(245,200,66,0.04) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 80% 20%, rgba(10,132,255,0.05) 0%, transparent 60%);
+    }
+
+    /* Achievement card */
+    .achievement-card {
+      position: relative;
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(255,255,255,0.07);
+      background: var(--gradient-card);
+      padding: 28px 22px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: transform 0.4s cubic-bezier(.2,.8,.2,1), box-shadow 0.4s, border-color 0.4s;
+      text-align: center;
+    }
+    .achievement-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% 30%, var(--rarity-glow, rgba(10,132,255,0.15)) 0%, transparent 70%);
+      opacity: 0; transition: opacity 0.4s;
+    }
+    .achievement-card:hover {
+      transform: translateY(-8px);
+      border-color: var(--rarity-color, rgba(10,132,255,0.5));
+      box-shadow: 0 0 40px var(--rarity-glow, rgba(10,132,255,0.3)), 0 8px 40px rgba(0,0,0,0.7);
+    }
+    .achievement-card:hover::before { opacity: 1; }
+
+    /* Unlock sweep */
+    .achievement-card::after {
+      content: '';
+      position: absolute; top: 0; left: -100%;
+      width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+      transition: left 0.6s ease;
+    }
+    .achievement-card:hover::after { left: 150%; }
+
+    .achievement-icon {
+      font-size: 2.8rem;
+      margin-bottom: 14px;
+      display: block;
+      filter: drop-shadow(0 0 12px var(--rarity-glow, rgba(10,132,255,0.5)));
+      transition: transform 0.3s;
+    }
+    .achievement-card:hover .achievement-icon { transform: scale(1.15); }
+
+    .rarity-label {
+      font-family: var(--font-ui);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--rarity-color, var(--blue-core));
+      margin-bottom: 6px;
+      display: block;
+    }
+    .achievement-title {
+      font-family: var(--font-ui);
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: var(--white);
+      margin-bottom: 4px;
+    }
+    .achievement-sub {
+      font-family: var(--font-ui);
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+    .achievement-desc {
+      font-size: 0.82rem;
+      color: var(--text-body);
+      line-height: 1.6;
+    }
+
+    /* Rarity border glow bottom line */
+    .rarity-bar {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--rarity-color, var(--blue-core));
+      box-shadow: 0 0 10px var(--rarity-color, var(--blue-core));
+      opacity: 0.7;
+    }
+
+    /* Legend at top */
+    .rarity-legend {
+      display: flex; gap: 16px; flex-wrap: wrap;
+      justify-content: center;
+      margin: 0 40px 40px;
+    }
+    .rarity-dot {
+      display: flex; align-items: center; gap: 6px;
+      font-family: var(--font-ui);
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .rarity-dot::before {
+      content: '';
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--dot-color);
+      box-shadow: 0 0 6px var(--dot-color);
+    }
+
+    @media (max-width: 768px) {
+      .card-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 10px;
+      }
+
+      .achievement-card {
+        padding: 16px 10px;
+        border-radius: 14px;
+      }
+
+      .achievement-icon {
+        font-size: 1.55rem;
+        margin-bottom: 8px;
+      }
+
+      .rarity-label {
+        font-size: 0.42rem;
+        letter-spacing: 0.12em;
+        margin-bottom: 4px;
+      }
+
+      .achievement-title {
+        font-size: 0.72rem;
+        line-height: 1.15;
+        margin-bottom: 4px;
+      }
+
+      .achievement-sub {
+        font-size: 0.42rem;
+        letter-spacing: 0.08em;
+        margin-bottom: 6px;
+      }
+
+      .achievement-desc {
+        font-size: 0.58rem;
+        line-height: 1.35;
+      }
+
+      .rarity-legend {
+        margin: 0 20px 22px;
+        gap: 10px;
+      }
+
+      .rarity-dot {
+        font-size: 0.46rem;
+        letter-spacing: 0.08em;
+        gap: 4px;
+      }
+
+      .rarity-dot::before {
+        width: 6px;
+        height: 6px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .card-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 8px;
+      }
+
+      .achievement-card {
+        padding: 14px 8px;
+        border-radius: 12px;
+      }
+
+      .achievement-icon {
+        font-size: 1.3rem;
+        margin-bottom: 6px;
+      }
+
+      .rarity-label {
+        font-size: 0.38rem;
+        letter-spacing: 0.1em;
+      }
+
+      .achievement-title {
+        font-size: 0.64rem;
+      }
+
+      .achievement-sub {
+        font-size: 0.36rem;
+        margin-bottom: 5px;
+      }
+
+      .achievement-desc {
+        font-size: 0.52rem;
+        line-height: 1.28;
+      }
+    }
+
+  </style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="trophy-bg"></div>
+<canvas id="particles-canvas"></canvas>
+
+<nav class="nav">
+  <a class="nav-logo" href="index.html">I<span>N</span>JAMAM</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="garage.html">Garage</a></li>
+    <li><a href="sports.html">Match Day</a></li>
+    <li><a href="studio.html">Studio</a></li>
+    <li><a href="travel.html">Travel</a></li>
+    <li><a href="profile.html">Profile</a></li>
+    <li><a href="highlights.html" class="active">Highlights</a></li>
+  </ul>
+  <button class="nav-menu-btn"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="page-wrapper">
+  <a class="back-btn" href="index.html">← Back to Home</a>
+
+  <div class="section-header">
+    <div class="section-eyebrow">Mode 06</div>
+    <h1 class="section-title">HIGHLIGHTS</h1>
+    <p class="section-subtitle">Unlocked achievements, milestones earned, and moments that defined the journey.</p>
+  </div>
+
+  <!-- Rarity legend -->
+  <div class="rarity-legend">
+    <div class="rarity-dot" style="--dot-color:#f5c842">Legendary</div>
+    <div class="rarity-dot" style="--dot-color:#0a84ff">Epic</div>
+    <div class="rarity-dot" style="--dot-color:#c8d4e8">Rare</div>
+    <div class="rarity-dot" style="--dot-color:#4a5568">Common</div>
+  </div>
+
+  <div class="card-grid" id="highlights-grid"
+    style="grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));">
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="db.js"></script>
+<script src="scripts.js"></script>
+<script>
+const RARITY = {
+  Legendary: { color: '#f5c842', glow: 'rgba(245,200,66,0.25)' },
+  Epic:      { color: '#0a84ff', glow: 'rgba(10,132,255,0.25)' },
+  Rare:      { color: '#c8d4e8', glow: 'rgba(200,212,232,0.15)' },
+  Common:    { color: '#4a5568', glow: 'rgba(74,85,104,0.15)' },
+};
+
+const grid = document.getElementById('highlights-grid');
+
+async function initHighlights(){
+  try{
+    const highlightsList = (window.DB && DB.getHighlights)
+      ? await DB.getHighlights()
+      : highlightsData;
+
+    grid.innerHTML = '';
+
+    highlightsList.forEach((item, i) => {
+      const r = RARITY[item.rarity] || RARITY.Common;
+      const card = document.createElement('div');
+      card.className = 'achievement-card';
+      card.style.cssText = `
+        --rarity-color: ${r.color};
+        --rarity-glow: ${r.glow};
+        animation: float-up 0.5s ${i * 0.07}s ease both;
+        opacity: 0;
+      `;
+      card.innerHTML = `
+        <div class="rarity-bar"></div>
+        <span class="achievement-icon">${item.icon}</span>
+        <span class="rarity-label">${item.rarity}</span>
+        <div class="achievement-title">${item.title}</div>
+        <div class="achievement-sub">${item.subtitle}</div>
+        <div class="achievement-desc">${item.description}</div>
+      `;
+      grid.appendChild(card);
+    });
+  }catch(err){
+    console.error(err);
+    grid.innerHTML = '<div style="color:rgba(255,255,255,.45);padding:40px 20px;grid-column:1/-1;text-align:center;">Failed to load highlights.</div>';
+  }
+}
+
+initHighlights();
+</script>
+</body>
+</html>

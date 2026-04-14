@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GARAGE — Dream Cars</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:#060608; --panel:#0d0f15; --panel2:#111420;
+      --orange:#00d4ff;
+      --orange-g:rgba(0,212,255,0.22);
+      --cyan:#00d4ff; --cyan-g:rgba(0,212,255,0.12);
+      --silver:#7a8a9a; --silver2:#c0ccd8; --white:#f0f0ff;
+      --green:#00ff88;
+      --fh:'Orbitron',monospace; --fu:'Rajdhani',sans-serif; --fm:'Share Tech Mono',monospace;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html,body{overflow-x:hidden;}
+    body{background:var(--bg);color:var(--white);font-family:var(--fu);cursor:crosshair;}
+    a{text-decoration:none;color:inherit;}
+    button{cursor:pointer;border:none;font-family:inherit;}
+    img{display:block;max-width:100%;}
+    ::-webkit-scrollbar{width:4px;}
+    ::-webkit-scrollbar-thumb{background:#1e2840;}
+
+    .mobile-video-tail{
+      display:none;
+    }
+
+    /* VIDEO BACKGROUND */
+    .video-bg-wrap{
+      position:fixed;
+      inset:0;
+      z-index:0;
+      overflow:hidden;
+      pointer-events:none;
+      background:#000;
+    }
+    .video-bg{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      object-position:center center;
+      transform:scale(1);
+      filter:brightness(.85) saturate(.95);
+    }
+
+    .video-overlay{
+      position:absolute;
+      inset:0;
+      background:
+        linear-gradient(to bottom, rgba(4,4,6,.40) 0%, rgba(5,5,8,.42) 22%, rgba(5,5,8,.20) 48%, rgba(5,5,8,.58) 100%),
+        radial-gradient(ellipse 120% 60% at 50% 110%, rgba(0,212,255,.10) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 30% at 15% 5%, rgba(0,212,255,.05) 0%, transparent 50%);
+      transition:background .9s ease;
+    }
+
+    body.intro-finished .video-overlay{
+      background:
+        linear-gradient(to bottom, rgba(4,4,6,.72) 0%, rgba(5,5,8,.74) 25%, rgba(5,5,8,.55) 50%, rgba(5,5,8,.84) 100%),
+        radial-gradient(ellipse 120% 60% at 50% 110%, rgba(0,212,255,.08) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 30% at 15% 5%, rgba(0,212,255,.04) 0%, transparent 50%);
+    }
+
+    .bg-layer{
+      position:fixed;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      background:
+        repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(255,255,255,.013) 60px),
+        repeating-linear-gradient(90deg,transparent,transparent 79px,rgba(255,255,255,.008) 80px);
+    }
+
+    .speed-layer{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+    .speed-line{position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgba(0,212,255,.4),transparent);animation:speed-fly linear infinite;}
+    @keyframes speed-fly{from{transform:translateX(-120vw);}to{transform:translateX(120vw);}}
+
+    /* NAV */
+    .hud-right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .hud-nav{
+      position:fixed;top:0;left:0;right:0;z-index:100;height:56px;
+      display:flex;align-items:center;justify-content:space-between;
+      padding:0 28px;background:rgba(4,4,6,.82);
+      border-bottom:1px solid rgba(0,212,255,.12);backdrop-filter:blur(20px);
+    }
+    .hud-nav::before{content:'';position:absolute;bottom:-1px;left:0;width:100px;height:2px;background:linear-gradient(90deg,var(--orange),transparent);}
+    .hud-nav::after{content:'';position:absolute;bottom:-1px;right:0;width:100px;height:2px;background:linear-gradient(270deg,var(--cyan),transparent);}
+    .hud-logo{
+      font-family:var(--fh);font-size:.9rem;font-weight:900;letter-spacing:.18em;
+      display:flex;align-items:center;gap:8px;
+    }
+    .hud-dot{
+      width:7px;height:7px;border-radius:50%;background:var(--orange);
+      box-shadow:0 0 10px var(--orange);animation:blink 1.5s step-end infinite;
+    }
+    @keyframes blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+    .hud-links{display:flex;gap:2px;list-style:none;}
+    .hud-links a{
+      font-family:var(--fh);font-size:.5rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--silver);
+      padding:6px 12px;border:1px solid transparent;border-radius:2px;transition:all .2s;
+    }
+    .hud-links a:hover,.hud-links a.active{
+      color:var(--cyan);border-color:rgba(0,212,255,.3);background:rgba(0,212,255,.05);
+    }
+    .sys-status{
+      font-family:var(--fm);
+      font-size:.58rem;
+      color:var(--cyan);
+      display:flex;
+      align-items:center;
+      gap:6px;
+      text-shadow:0 0 8px rgba(0,212,255,.45);
+    }
+    .sys-status::before{
+      content:'';
+      width:6px;
+      height:6px;
+      border-radius:50%;
+      background:var(--cyan);
+      box-shadow:0 0 6px var(--cyan), 0 0 14px rgba(0,212,255,.7);
+      animation:blink 1.5s step-end infinite;
+    }
+    .menu-toggle{display:none;flex-direction:column;gap:4px;background:none;border:none;padding:6px;}
+    .menu-toggle span{display:block;width:22px;height:1.5px;background:var(--white);}
+
+    /* PAGE */
+    .page{position:relative;z-index:1;min-height:100vh;padding-top:56px;}
+
+    .garage-stage{
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      position:relative;
+    }
+
+    /* RACE HEADER */
+    .race-header{
+      padding:36px 36px 0;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      position:relative;
+      z-index:2;
+    }
+    .race-header::after{
+      content:'';
+      position:absolute;
+      bottom:-16px;
+      left:36px;
+      width:220px;
+      height:1px;
+      background:linear-gradient(90deg,var(--orange),transparent);
+    }
+    .mode-tag{
+      font-family:var(--fm);font-size:.62rem;color:var(--orange);
+      letter-spacing:.3em;margin-bottom:8px;display:flex;align-items:center;gap:8px;
+    }
+    .mode-tag::before{content:'';display:inline-block;width:18px;height:1px;background:var(--orange);}
+    .race-h1{
+      font-family:var(--fh);font-size:clamp(2.2rem,6vw,4.5rem);
+      font-weight:900;letter-spacing:.1em;line-height:.9;color:var(--white);
+    }
+    .race-h1 em{color:var(--orange);font-style:normal;}
+    .race-sub{font-size:.8rem;color:var(--silver2);margin-top:10px;letter-spacing:.06em;}
+    .speedo-block{text-align:right;}
+    .speedo-big{
+      font-family:var(--fh);font-size:3.5rem;font-weight:900;color:var(--orange);
+      line-height:1;text-shadow:0 0 30px rgba(0,212,255,.55);
+    }
+    .speedo-unit{font-family:var(--fm);font-size:.6rem;color:var(--silver);letter-spacing:.25em;}
+    .speedo-track{
+      width:180px;height:3px;background:rgba(255,255,255,.07);
+      border-radius:3px;margin-top:8px;overflow:hidden;margin-left:auto;
+    }
+    .speedo-fill{
+      height:100%;
+      background:linear-gradient(90deg,var(--orange),#7be7ff);
+      box-shadow:0 0 10px var(--orange);
+      width:0;
+      transition:width 2s cubic-bezier(.2,.8,.2,1);
+    }
+
+    .video-gap{
+      flex:1;
+      min-height:180px;
+      position:relative;
+      z-index:1;
+    }
+
+    .cards-stage{
+      position:relative;
+      z-index:2;
+      padding:0 36px 80px;
+      transform:translateY(120px);
+      transition:transform 1.15s cubic-bezier(.2,.8,.2,1);
+    }
+
+    body.intro-finished .cards-stage{
+      transform:translateY(0);
+    }
+
+    .car-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+      gap:28px;
+    }
+
+    /* FLIP CARD */
+    .flip-wrapper{
+      perspective:1000px;
+      height:440px;
+      cursor:pointer;
+      position:relative;
+      isolation:isolate;
+      overflow:visible;
+    }
+
+    .flip-wrapper::before{
+      content:'';
+      position:absolute;
+      top:18px;
+      right:18px;
+      bottom:18px;
+      left:18px;
+      z-index:0;
+      border-radius:20px;
+      background:rgba(0,212,255,.22);
+      box-shadow:
+        0 0 18px rgba(0,212,255,.45),
+        0 0 40px rgba(0,212,255,.32),
+        0 0 75px rgba(0,212,255,.22),
+        0 0 120px rgba(0,212,255,.14);
+      filter:blur(16px);
+      opacity:.95;
+      transform:scale(1);
+      transition:opacity .35s ease, transform .35s ease, filter .35s ease;
+      pointer-events:none;
+    }
+
+    .flip-wrapper:hover::before{
+      opacity:1;
+      transform:scale(1.03);
+      filter:blur(20px);
+    }
+
+    .flip-wrapper.flipped::before{
+      opacity:1;
+      transform:scale(1.02);
+      filter:blur(18px);
+    }
+
+    .flip-inner{
+      position:relative;
+      width:100%;
+      height:100%;
+      z-index:1;
+      transform-style:preserve-3d;
+      transition:transform .75s cubic-bezier(.4,0,.2,1);
+    }
+    .flip-wrapper.flipped .flip-inner{transform:rotateY(180deg);}
+    .flip-face{
+      position:absolute;inset:0;
+      backface-visibility:hidden;-webkit-backface-visibility:hidden;
+      border-radius:14px;overflow:hidden;
+    }
+    .flip-back{transform:rotateY(180deg);}
+
+    .card-front{
+      width:100%;height:100%;position:relative;
+      background:var(--panel);
+      border:1px solid rgba(255,255,255,.06);
+      transition:border-color .3s,box-shadow .3s;
+      clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,0 100%);
+    }
+    .flip-wrapper:hover .card-front{border-color:var(--orange);box-shadow:0 0 40px rgba(0,212,255,.2);}
+    .card-front::before{
+      content:'';position:absolute;top:0;right:0;z-index:4;width:18px;height:18px;
+      background:var(--orange);clip-path:polygon(0 0,100% 0,100% 100%);
+      opacity:0;transition:opacity .3s;
+    }
+    .flip-wrapper:hover .card-front::before{opacity:1;}
+
+    .card-cover-img{
+      width:100%;height:100%;object-fit:cover;
+      filter:brightness(.75) saturate(.85);
+      transition:filter .4s,transform .5s;
+    }
+    .flip-wrapper:hover .card-cover-img{
+      filter:brightness(.85) saturate(1);
+      transform:scale(1.04);
+    }
+
+    .card-front-grad{
+      position:absolute;inset:0;
+      background:linear-gradient(to top,rgba(6,6,8,1) 0%,rgba(6,6,8,.5) 35%,transparent 65%);
+    }
+
+    .card-front-name{
+      position:absolute;bottom:0;left:0;right:0;padding:20px 18px;z-index:2;
+    }
+    .card-front-brand{
+      font-family:var(--fm);font-size:.58rem;color:var(--orange);
+      letter-spacing:.25em;text-transform:uppercase;margin-bottom:3px;
+    }
+    .card-front-title{
+      font-family:var(--fh);font-size:1.35rem;font-weight:900;
+      letter-spacing:.08em;color:var(--white);line-height:1;
+      text-shadow:0 2px 12px rgba(0,0,0,.8);
+    }
+    .card-front-line{
+      width:40px;height:2px;background:var(--orange);
+      box-shadow:0 0 8px var(--orange);margin:8px 0 4px;border-radius:2px;
+    }
+    .card-front-tag{
+      font-family:var(--fm);font-size:.5rem;color:var(--cyan);
+      letter-spacing:.12em;border:1px solid rgba(0,212,255,.28);
+      padding:2px 9px;background:rgba(0,212,255,.06);
+    }
+
+    .card-hint{
+      position:absolute;top:14px;left:14px;z-index:3;font-family:var(--fm);
+      font-size:.52rem;color:rgba(255,255,255,.35);letter-spacing:.12em;
+      background:rgba(0,0,0,.5);padding:3px 8px;border-radius:3px;
+      transition:color .3s;
+    }
+    .flip-wrapper:hover .card-hint{color:var(--orange);}
+
+    .card-back{
+      width:100%;height:100%;
+      background:linear-gradient(145deg,#0f1520 0%,#090c14 100%);
+      border:1px solid rgba(0,212,255,.35);
+      display:flex;flex-direction:column;padding:26px;
+      clip-path:polygon(18px 0,100% 0,100% 100%,0 100%,0 18px);
+    }
+    .back-corner{
+      position:absolute;top:0;left:0;z-index:4;width:18px;height:18px;
+      background:var(--orange);clip-path:polygon(0 0,100% 100%,0 100%);
+    }
+
+    .back-brand{
+      font-family:var(--fm);font-size:.58rem;color:var(--orange);
+      letter-spacing:.25em;text-transform:uppercase;margin-bottom:4px;
+    }
+    .back-name{
+      font-family:var(--fh);font-size:1.4rem;font-weight:900;
+      letter-spacing:.07em;color:var(--white);line-height:1.1;margin-bottom:10px;
+    }
+    .back-year{font-family:var(--fm);font-size:.72rem;color:var(--cyan);letter-spacing:.2em;}
+    .back-divider{height:1px;background:linear-gradient(90deg,var(--orange),transparent);margin:14px 0;}
+    .back-desc{font-size:.88rem;color:var(--silver2);line-height:1.7;flex:1;overflow:hidden;}
+    .back-footer{margin-top:14px;font-family:var(--fm);font-size:.52rem;color:rgba(255,255,255,.22);letter-spacing:.12em;}
+
+    .sound-indicator{display:flex;align-items:flex-end;gap:2px;height:14px;margin-top:10px;opacity:0;transition:opacity .3s;}
+    .sound-indicator.active{opacity:1;}
+    .sound-indicator span{width:3px;border-radius:2px;background:var(--cyan);}
+    .sound-indicator.active span:nth-child(1){animation:eq .4s ease infinite;}
+    .sound-indicator.active span:nth-child(2){animation:eq .6s .1s ease infinite;}
+    .sound-indicator.active span:nth-child(3){animation:eq .3s .05s ease infinite;}
+    .sound-indicator.active span:nth-child(4){animation:eq .5s .15s ease infinite;}
+    @keyframes eq{0%,100%{height:3px;}50%{height:12px;}}
+
+    /* TABLET */
+    @media(max-width:900px){
+      .hud-links{display:none;}
+      .hud-links.open{
+        display:flex;flex-direction:column;position:fixed;top:56px;left:0;right:0;
+        background:rgba(4,4,6,.97);padding:16px;border-bottom:1px solid rgba(0,212,255,.2);
+      }
+      .menu-toggle{display:flex;}
+      .race-header{
+        flex-direction:column;
+        gap:20px;
+        padding:24px 18px 0;
+      }
+      .speedo-block{text-align:left;}
+      .speedo-track{margin-left:0;}
+      .video-gap{min-height:120px;}
+      .cards-stage{
+        padding:0 16px 50px;
+        transform:translateY(85px);
+      }
+      .car-grid{
+        grid-template-columns:1fr 1fr;
+        gap:16px;
+      }
+      .flip-wrapper{height:380px;}
+    }
+
+    /* MOBILE ONLY */
+    @media(max-width:700px){
+
+      .mobile-video-tail{
+        display:block;
+        position:absolute;
+        top:350px;
+        left:0;
+        right:0;
+        bottom:0;
+        z-index:0;
+        overflow:hidden;
+        pointer-events:none;
+      }
+
+      .mobile-video-tail-bg{
+        position:absolute;
+        inset:0;
+        width:100%;
+        height:100%;
+        object-fit:cover;
+        object-position:center top;
+        filter:blur(8px) brightness(.38) saturate(.82);
+        transform:scale(1.04);
+        opacity:.9;
+      }
+
+      .mobile-video-tail-overlay{
+        position:absolute;
+        inset:0;
+        background:
+          linear-gradient(to bottom,
+            rgba(6,6,8,.18) 0%,
+            rgba(6,6,8,.55) 18%,
+            rgba(6,6,8,.88) 55%,
+            rgba(6,6,8,.98) 100%
+          );
+      }
+
+      .hud-nav{
+        height:54px;
+        padding:0 10px 0 12px;
+      }
+
+      .hud-logo{
+        font-size:.7rem;
+        letter-spacing:.1em;
+        gap:6px;
+      }
+
+      .hud-right{
+        display:flex;
+        align-items:center;
+        gap:8px;
+      }
+
+      .sys-status{
+        font-size:.38rem;
+        letter-spacing:.05em;
+        gap:4px;
+        order:1;
+      }
+
+      .sys-status::before{
+        width:4px;
+        height:4px;
+      }
+
+      .menu-toggle{
+        order:2;
+        padding:4px;
+      }
+
+      .hud-nav::before,
+      .hud-nav::after{
+        width:72px;
+      }
+
+      .page{
+        padding-top:54px;
+      }
+
+      /* mobile video only at top */
+      .video-bg-wrap{
+        position:absolute;
+        top:0;
+        left:0;
+        right:0;
+        bottom:auto;
+        height:410px;
+        inset:auto;
+      }
+
+      .video-bg{
+        object-position:center top;
+        filter:brightness(.82) saturate(.95);
+      }
+
+      .video-overlay{
+        background:
+          linear-gradient(to bottom,
+            rgba(4,4,6,.26) 0%,
+            rgba(5,5,8,.22) 28%,
+            rgba(5,5,8,.34) 72%,
+            rgba(5,5,8,.86) 100%
+          ),
+          radial-gradient(ellipse 100% 55% at 50% 100%, rgba(0,212,255,.10) 0%, transparent 58%);
+      }
+
+      body.intro-finished .video-overlay{
+        background:
+          linear-gradient(to bottom,
+            rgba(4,4,6,.42) 0%,
+            rgba(5,5,8,.36) 28%,
+            rgba(5,5,8,.42) 72%,
+            rgba(5,5,8,.92) 100%
+          ),
+          radial-gradient(ellipse 100% 55% at 50% 100%, rgba(0,212,255,.08) 0%, transparent 58%);
+      }
+
+      .video-bg-wrap::after{
+        content:'';
+        position:absolute;
+        left:0;
+        right:0;
+        bottom:-1px;
+        height:130px;
+        background:linear-gradient(
+          to bottom,
+          rgba(6,6,8,0) 0%,
+          rgba(6,6,8,.55) 42%,
+          rgba(6,6,8,.96) 100%
+        );
+      }
+
+      .garage-stage{
+        min-height:auto;
+      }
+
+      .race-header{
+        padding:18px 14px 0;
+        flex-direction:row;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:12px;
+      }
+
+      .race-header::after{
+        left:14px;
+        width:118px;
+        bottom:-10px;
+      }
+
+      .race-header > div:first-child{
+        width:calc(100% - 108px);
+      }
+
+      .mode-tag{
+        font-size:.46rem;
+        letter-spacing:.18em;
+        margin-bottom:7px;
+        gap:6px;
+      }
+
+      .mode-tag::before{
+        width:12px;
+      }
+
+      .race-h1{
+        font-size:1.8rem;
+        letter-spacing:.05em;
+        line-height:.9;
+        max-width:210px;
+      }
+
+      .race-sub{
+        font-size:.62rem;
+        line-height:1.35;
+        margin-top:8px;
+        max-width:200px;
+      }
+
+      .speedo-block{
+        width:64px;
+        text-align:right;
+        padding-top:0;
+        margin-top:-6px;
+      }
+
+      .speedo-big{
+        font-size:1.22rem;
+        line-height:.88;
+        letter-spacing:.02em;
+        text-shadow:0 0 8px rgba(0,212,255,.22);
+      }
+
+      .speedo-unit{
+        font-size:.28rem;
+        letter-spacing:.10em;
+        opacity:.75;
+      }
+
+      .speedo-track{
+        width:56px;
+        height:2px;
+        margin-top:4px;
+        margin-left:auto;
+      }
+
+      /* video ends around middle of first row */
+      .video-gap{
+        min-height:clamp(88px, 13vw, 110px);
+      }
+
+      .cards-stage{
+        padding:0 10px 34px;
+        margin-top:clamp(60px, 10vw, 78px);
+        transform:none;
+        transition:none;
+      }
+
+      body.intro-finished .cards-stage{
+        transform:none;
+      }
+
+      .car-grid{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        gap:8px;
+      }
+
+      .flip-wrapper{
+        height:190px;
+      }
+
+      .flip-wrapper::before{
+        top:8px;
+        right:8px;
+        bottom:8px;
+        left:8px;
+        border-radius:12px;
+        filter:blur(10px);
+        box-shadow:
+          0 0 12px rgba(0,212,255,.32),
+          0 0 26px rgba(0,212,255,.18),
+          0 0 44px rgba(0,212,255,.10);
+      }
+
+      .flip-face,
+      .card-front,
+      .card-back{
+        border-radius:10px;
+      }
+
+      .card-front::before,
+      .back-corner{
+        width:12px;
+        height:12px;
+      }
+
+      .card-front{
+        clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,0 100%);
+      }
+
+      .card-back{
+        padding:12px;
+        clip-path:polygon(12px 0,100% 0,100% 100%,0 100%,0 12px);
+      }
+
+      .card-hint{
+        top:8px;
+        left:8px;
+        font-size:.28rem;
+        padding:2px 4px;
+        letter-spacing:.08em;
+      }
+
+      .card-front-name{
+        padding:10px 9px 9px;
+      }
+
+      .card-front-brand{
+        font-size:.26rem;
+        letter-spacing:.14em;
+        margin-bottom:2px;
+      }
+
+      .card-front-title{
+        font-size:.72rem;
+        letter-spacing:.03em;
+        line-height:1.04;
+      }
+
+      .card-front-line{
+        width:18px;
+        height:1.5px;
+        margin:5px 0 3px;
+      }
+
+      .card-front-tag{
+        font-size:.26rem;
+        padding:1px 5px;
+        letter-spacing:.06em;
+      }
+
+      .back-brand{
+        font-size:.26rem;
+        letter-spacing:.14em;
+        margin-bottom:2px;
+      }
+
+      .back-name{
+        font-size:.7rem;
+        margin-bottom:4px;
+      }
+
+      .back-year{
+        font-size:.38rem;
+        letter-spacing:.12em;
+      }
+
+      .back-divider{
+        margin:6px 0;
+      }
+
+      .back-desc{
+        font-size:.42rem;
+        line-height:1.35;
+      }
+
+      .back-footer{
+        display:none;
+      }
+
+      .sound-indicator{
+        margin-top:4px;
+        height:9px;
+      }
+
+      .sound-indicator span{
+        width:2px;
+      }
+    }
+
+    @media(max-width:420px){
+
+      .mobile-video-tail{
+        top:335px;
+      }
+      .hud-logo{
+        font-size:.68rem;
+      }
+
+      .race-h1{
+        font-size:1.68rem;
+        max-width:190px;
+      }
+
+      .race-sub{
+        max-width:180px;
+      }
+
+      .hud-nav{
+        padding:0 8px 0 10px;
+      }
+
+      .sys-status{
+        font-size:.34rem;
+      }
+
+      .speedo-block{
+        width:58px;
+        margin-top:-8px;
+      }
+
+      .speedo-big{
+        font-size:1.08rem;
+      }
+
+      .speedo-track{
+        width:50px;
+      }
+
+      .cards-stage{
+        margin-top:clamp(42px, 8vw, 58px);
+      }
+
+      .flip-wrapper{
+        height:176px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="video-bg-wrap">
+  <video class="video-bg" id="garage-video" autoplay muted playsinline preload="auto">
+    <source src="videos/garage-bg.mp4" type="video/mp4">
+  </video>
+  <div class="video-overlay"></div>
+</div>
+
+<div class="mobile-video-tail">
+  <video class="mobile-video-tail-bg" autoplay muted loop playsinline preload="auto">
+    <source src="videos/garage-bg.mp4" type="video/mp4">
+  </video>
+  <div class="mobile-video-tail-overlay"></div>
+</div>
+
+<div class="bg-layer"></div>
+<div class="speed-layer" id="speed-layer"></div>
+
+<nav class="hud-nav">
+  <a class="hud-logo" href="index.html"><span class="hud-dot"></span>INJAMAM//SYS</a>
+
+  <ul class="hud-links" id="nav-links">
+    <li><a href="index.html">HOME</a></li>
+    <li><a href="garage.html" class="active">GARAGE</a></li>
+    <li><a href="sports.html">MATCH DAY</a></li>
+    <li><a href="studio.html">STUDIO</a></li>
+    <li><a href="travel.html">TRAVEL</a></li>
+    <li><a href="profile.html">PROFILE</a></li>
+    <li><a href="highlights.html">HIGHLIGHTS</a></li>
+  </ul>
+
+  <div class="hud-right">
+    <div class="sys-status">SYS_ONLINE</div>
+    <button class="menu-toggle" onclick="document.getElementById('nav-links').classList.toggle('open')"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="garage-stage">
+    <div class="race-header">
+      <div>
+        <div class="mode-tag">MODE_01 / GARAGE</div>
+        <h1 class="race-h1">
+          <span>DREAM<em>/</em></span><br/>
+          <span>GARAGE</span>
+        </h1>
+        <p class="race-sub">Click a card to flip it. Know the machines that I fancy.</p>
+      </div>
+      <div class="speedo-block">
+        <div class="speedo-big" id="speedo-num">000</div>
+        <div class="speedo-unit">KM/H</div>
+        <div class="speedo-track"><div class="speedo-fill" id="speedo-fill"></div></div>
+      </div>
+    </div>
+
+    <div class="video-gap"></div>
+
+    <div class="cards-stage">
+      <div class="car-grid" id="car-grid"></div>
+    </div>
+  </div>
+</div>
+
+
+<script src="db.js"></script>
+<script>
+/* Speed lines */
+const sl = document.getElementById('speed-layer');
+for(let i=0;i<12;i++){
+  const l=document.createElement('div');
+  l.className='speed-line';
+  l.style.cssText=`top:${Math.random()*100}%;width:${80+Math.random()*220}px;animation-duration:${2+Math.random()*4}s;animation-delay:${Math.random()*7}s;opacity:${.12+Math.random()*.35};`;
+  sl.appendChild(l);
+}
+
+/* Speedo */
+setTimeout(()=>{
+  document.getElementById('speedo-fill').style.width='78%';
+  let v=0;const t=320;
+  const iv=setInterval(()=>{
+    v=Math.min(v+9,t);
+    document.getElementById('speedo-num').textContent=String(v).padStart(3,'0');
+    if(v>=t)clearInterval(iv);
+  },18);
+},500);
+
+/* Intro video behavior */
+const garageVideo = document.getElementById('garage-video');
+let introDone = false;
+
+function finishIntro(){
+  if(introDone) return;
+  introDone = true;
+  document.body.classList.add('intro-finished');
+}
+
+garageVideo.addEventListener('ended', () => {
+  finishIntro();
+  garageVideo.loop = true;
+  garageVideo.play().catch(() => {});
+});
+
+setTimeout(() => {
+  if(!introDone) finishIntro();
+}, 9000);
+
+/* Car passby sound */
+function playCarPassby() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const dur = 1.8;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(80, ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(220, ctx.currentTime + 0.4);
+    osc.frequency.linearRampToValueAtTime(60, ctx.currentTime + dur);
+
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(200, ctx.currentTime);
+    filter.frequency.linearRampToValueAtTime(800, ctx.currentTime + 0.3);
+    filter.frequency.linearRampToValueAtTime(100, ctx.currentTime + dur);
+    filter.Q.value = 2;
+
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.35, ctx.currentTime + 0.15);
+    gain.gain.linearRampToValueAtTime(0.22, ctx.currentTime + 0.6);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + dur);
+
+    const bufLen = ctx.sampleRate * dur;
+    const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+    const data = buf.getChannelData(0);
+    for(let i=0;i<bufLen;i++) data[i]=(Math.random()*2-1)*0.4;
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    const nFilter = ctx.createBiquadFilter();
+    nFilter.type = 'highpass';
+    nFilter.frequency.value = 3000;
+
+    const nGain = ctx.createGain();
+    nGain.gain.setValueAtTime(0,ctx.currentTime);
+    nGain.gain.linearRampToValueAtTime(0.08,ctx.currentTime+0.1);
+    nGain.gain.linearRampToValueAtTime(0,ctx.currentTime+dur);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    noise.connect(nFilter);
+    nFilter.connect(nGain);
+    nGain.connect(ctx.destination);
+
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime+dur);
+    noise.start(ctx.currentTime);
+    noise.stop(ctx.currentTime+dur);
+
+    return dur * 1000;
+  } catch(e) {
+    return 0;
+  }
+}
+
+/* Build cards */
+const grid = document.getElementById('car-grid');
+
+function buildGarage(items) {
+  grid.innerHTML = '';
+  if (!items.length) {
+    grid.innerHTML = '<div style="color:rgba(255,255,255,.2);font-family:var(--fm);font-size:.7rem;letter-spacing:.15em;padding:40px;grid-column:1/-1;">No cars added yet. Visit admin to add your first car.</div>';
+    return;
+  }
+
+  items.forEach((car, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'flip-wrapper';
+
+    wrap.innerHTML = `
+      <div class="flip-inner">
+        <div class="flip-face">
+          <div class="card-front">
+            <img class="card-cover-img" src="${car.coverImage}" alt="${car.name}" loading="lazy"/>
+            <div class="card-front-grad"></div>
+            <div class="card-hint">CLICK TO REVEAL</div>
+            <div class="card-front-name">
+              <div class="card-front-brand">${car.brand||''}</div>
+              <div class="card-front-title">${car.name}</div>
+              <div class="card-front-line"></div>
+              ${car.tag?`<span class="card-front-tag">${car.tag.toUpperCase()}</span>`:''}
+            </div>
+          </div>
+        </div>
+
+        <div class="flip-face flip-back">
+          <div class="card-back">
+            <div class="back-corner"></div>
+            <div class="back-brand">${car.brand||''}</div>
+            <div class="back-name">${car.name}</div>
+            ${car.year?`<div class="back-year">${car.year}</div>`:''}
+            <div class="back-divider"></div>
+            <div class="back-desc">${car.description||'No description yet.'}</div>
+            <div class="sound-indicator" id="snd-${i}">
+              <span style="height:4px"></span><span style="height:10px"></span>
+              <span style="height:7px"></span><span style="height:5px"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    let flipped = false;
+    wrap.addEventListener('click', () => {
+      flipped = !flipped;
+      wrap.classList.toggle('flipped', flipped);
+      if (flipped) {
+        const ms = playCarPassby();
+        if (ms > 0) {
+          const ind = document.getElementById('snd-' + i);
+          ind.classList.add('active');
+          setTimeout(() => ind.classList.remove('active'), ms);
+        }
+      }
+    });
+
+    grid.appendChild(wrap);
+  });
+}
+
+async function initGarage(){
+  try{
+    const cars = await DB.getCars();
+    buildGarage(cars);
+  }catch(err){
+    console.error(err);
+    grid.innerHTML = '<div style="color:rgba(255,255,255,.35);font-family:var(--fm);font-size:.7rem;letter-spacing:.15em;padding:40px;grid-column:1/-1;">Failed to load garage data.</div>';
+  }
+}
+
+initGarage();
+</script>
+</body>
+</html>

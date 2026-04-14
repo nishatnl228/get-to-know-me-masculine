@@ -1,0 +1,1447 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — Site Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:#07080c; --panel:#0d0f18; --panel2:#111520;
+      --blue:#0a84ff; --blue-b:rgba(10,132,255,.32); --blue-g:rgba(10,132,255,.14);
+      --green:#30d68a; --red:#ff453a; --amber:#ff9f0a;
+      --white:#f0f4ff; --silver:#8a9ab5; --muted:#3a4560;
+      --font-h:'Orbitron',monospace; --font-u:'Rajdhani',sans-serif; --font-m:'Share Tech Mono',monospace;
+      --r:12px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--white);font-family:var(--font-u);min-height:100vh;overflow-x:hidden}
+    body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;background-image:linear-gradient(rgba(10,132,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(10,132,255,.04) 1px,transparent 1px);background-size:50px 50px}
+    a{text-decoration:none;color:inherit} button{cursor:pointer;border:none;font-family:inherit} img{display:block;max-width:100%}
+    input,textarea,select{font-family:inherit}
+    ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:#1e2840;border-radius:3px}
+
+    #login-screen{position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 80% 80% at 50% 50%,rgba(10,132,255,.06) 0%,var(--bg) 70%)}
+    .login-box{background:var(--panel);border:1px solid var(--blue-b);border-radius:16px;padding:50px 44px;text-align:center;width:100%;max-width:400px;box-shadow:0 0 80px rgba(10,132,255,.1)}
+    .login-logo{font-family:var(--font-h);font-size:1rem;font-weight:900;letter-spacing:.2em;color:var(--white);margin-bottom:6px}
+    .login-sub{font-family:var(--font-m);font-size:.6rem;color:var(--silver);letter-spacing:.2em;margin-bottom:36px}
+    .login-label,.form-label{font-family:var(--font-m);font-size:.58rem;color:var(--silver);letter-spacing:.16em;text-transform:uppercase}
+    .login-input,.form-input,.form-select,.form-textarea{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:8px;padding:11px 14px;color:var(--white);font-size:.95rem;outline:none}
+    .login-input:focus,.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--blue)}
+    .login-btn,.submit-btn,.secondary-btn,.edit-btn,.delete-btn,.small-btn{border-radius:8px;padding:11px 16px;font-weight:700;letter-spacing:.12em}
+    .login-btn,.submit-btn{background:var(--blue);color:var(--white)}
+    .login-btn:hover,.submit-btn:hover{background:#2090ff}
+    .secondary-btn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--silver)}
+    .secondary-btn:hover{border-color:var(--blue-b);color:var(--white)}
+    .edit-btn{padding:8px 12px;background:rgba(10,132,255,.08);border:1px solid var(--blue-b);color:var(--blue);font-family:var(--font-m);font-size:.6rem}
+    .delete-btn{padding:8px 12px;background:rgba(255,67,58,.08);border:1px solid rgba(255,67,58,.22);color:var(--red);font-family:var(--font-m);font-size:.6rem}
+    .small-btn{padding:6px 10px;font-size:.58rem;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:var(--silver);font-family:var(--font-m)}
+    .small-btn.danger{color:var(--red);border-color:rgba(255,67,58,.22);background:rgba(255,67,58,.06)}
+    .login-err{margin-top:14px;font-family:var(--font-m);font-size:.62rem;color:var(--red);letter-spacing:.1em;min-height:1em}
+
+    #admin-app{display:none;position:relative;z-index:1;min-height:100vh}
+    .admin-bar{position:sticky;top:0;z-index:100;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;background:rgba(7,8,12,.95);border-bottom:1px solid rgba(10,132,255,.15);backdrop-filter:blur(16px)}
+    .admin-bar-logo{font-family:var(--font-h);font-size:.85rem;font-weight:900;letter-spacing:.18em;display:flex;align-items:center;gap:8px}
+    .admin-bar-logo span{color:var(--blue)}
+    .admin-bar-right{display:flex;align-items:center;gap:12px}
+    .visit-btn,.logout-btn{font-size:.72rem;font-weight:600;letter-spacing:.1em;padding:6px 14px;border-radius:6px}
+    .visit-btn{color:var(--silver);border:1px solid rgba(255,255,255,.1)}
+    .logout-btn{color:var(--red);border:1px solid rgba(255,67,58,.2);background:transparent}
+
+    .admin-tabs{display:flex;gap:2px;padding:20px 24px 0;border-bottom:1px solid rgba(255,255,255,.05);overflow-x:auto}
+    .tab-btn{font-size:.76rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--silver);padding:10px 16px;border:1px solid transparent;border-bottom:none;border-radius:8px 8px 0 0;background:transparent;white-space:nowrap}
+    .tab-btn.active{color:var(--blue);background:var(--panel);border-color:rgba(10,132,255,.25);border-bottom-color:var(--panel)}
+    .tab-panel{display:none;padding:28px 24px 60px}
+    .tab-panel.active{display:block}
+    .sec-title{font-family:var(--font-h);font-size:.78rem;font-weight:700;letter-spacing:.15em;color:var(--blue);margin-bottom:18px;display:flex;align-items:center;gap:10px}
+    .sec-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--blue-b),transparent)}
+    .form-card{background:var(--panel);border:1px solid rgba(255,255,255,.06);border-radius:var(--r);padding:24px;margin-bottom:24px}
+    .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .form-grid.full{grid-template-columns:1fr}
+    .form-group{display:flex;flex-direction:column;gap:6px}
+    .form-textarea{resize:vertical;min-height:90px;line-height:1.6}
+    .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .hint{font-family:var(--font-m);font-size:.58rem;color:var(--muted);letter-spacing:.1em}
+
+    .upload-zone{border:1.5px dashed rgba(10,132,255,.28);border-radius:8px;padding:18px;text-align:center;background:rgba(10,132,255,.03);position:relative}
+    .upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+    .upload-zone-icon{font-size:1.45rem;margin-bottom:6px}
+    .upload-zone-text{font-family:var(--font-m);font-size:.58rem;color:var(--silver);letter-spacing:.12em}
+    .upload-preview,.chip-list,.thumb-list{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .thumb{position:relative}
+    .thumb img{width:72px;height:72px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.1)}
+    .thumb button{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:var(--red);color:#fff;font-size:.65rem;padding:0}
+    .aud-chip,.tag-chip{background:rgba(10,132,255,.1);border:1px solid var(--blue-b);border-radius:999px;padding:5px 10px;font-family:var(--font-m);font-size:.55rem;color:var(--blue);display:flex;align-items:center;gap:6px}
+    .aud-chip .rm,.tag-chip .rm{color:var(--red);cursor:pointer}
+    .entries-list{display:flex;flex-direction:column;gap:10px}
+    .entry-row{background:var(--panel2);border:1px solid rgba(255,255,255,.05);border-radius:10px;padding:14px 16px;display:flex;align-items:flex-start;gap:14px}
+    .entry-thumb{width:58px;height:58px;object-fit:cover;border-radius:6px;flex-shrink:0;border:1px solid rgba(255,255,255,.08)}
+    .entry-thumb-placeholder{width:58px;height:58px;border-radius:6px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .entry-info{flex:1;min-width:0}
+    .entry-name{font-size:1rem;font-weight:700}
+    .entry-meta{font-family:var(--font-m);font-size:.56rem;color:var(--silver);letter-spacing:.1em;margin-top:3px}
+    .entry-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .sublist{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+    .subitem{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border-radius:7px;padding:8px 10px}
+    .subitem .name{flex:1;font-family:var(--font-m);font-size:.6rem;color:var(--white)}
+    .inline-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+    #toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%);z-index:999;background:rgba(10,132,255,.15);border:1px solid var(--blue-b);border-radius:50px;padding:10px 24px;font-family:var(--font-m);font-size:.72rem;letter-spacing:.1em;color:var(--white);backdrop-filter:blur(10px);opacity:0;transition:opacity .3s;pointer-events:none}
+
+    @media(max-width:780px){
+      .form-grid{grid-template-columns:1fr}
+      .entry-row{flex-direction:column}
+      .entry-actions{width:100%}
+    }
+  </style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">INJAMAM<span style="color:var(--blue)">.</span>ADMIN</div>
+    <div class="login-sub">RESTRICTED ACCESS — AUTHORISED ONLY</div>
+    <div class="form-group" style="margin-bottom:12px">
+      <div class="login-label">Email</div>
+      <input class="login-input" type="email" id="email-input" placeholder="you@example.com" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <div class="form-group">
+      <div class="login-label">Password</div>
+      <input class="login-input" type="password" id="pw-input" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="login-btn" style="margin-top:14px" onclick="doLogin()">ENTER ADMIN</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<div id="admin-app">
+  <div id="toast"></div>
+  <div class="admin-bar">
+    <div class="admin-bar-logo">INJAMAM<span>.</span>ADMIN</div>
+    <div class="admin-bar-right">
+      <a class="visit-btn" href="index.html" target="_blank">← View Site</a>
+      <button class="logout-btn" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="admin-tabs">
+    <button class="tab-btn active" onclick="switchTab('cars',event)">🏎 Garage</button>
+    <button class="tab-btn" onclick="switchTab('sports',event)">⚽ Sports</button>
+    <button class="tab-btn" onclick="switchTab('studio',event)">🎵 Studio</button>
+    <button class="tab-btn" onclick="switchTab('travel',event)">✈️ Travel</button>
+    <button class="tab-btn" onclick="switchTab('profile',event)">👤 Profile</button>
+    <button class="tab-btn" onclick="switchTab('achievements',event)">🏆 Achievements</button>
+  </div>
+
+  <div class="tab-panel active" id="tab-cars">
+    <div class="form-card">
+      <div class="sec-title">CAR FORM</div>
+      <div class="form-grid">
+        <div class="form-group"><div class="form-label">Car Name *</div><input class="form-input" id="c-name"/></div>
+        <div class="form-group"><div class="form-label">Brand *</div><input class="form-input" id="c-brand"/></div>
+        <div class="form-group"><div class="form-label">Year</div><input class="form-input" id="c-year"/></div>
+        <div class="form-group"><div class="form-label">Tag</div><input class="form-input" id="c-tag"/></div>
+      </div>
+      <div class="form-group" style="margin-top:14px"><div class="form-label">Description</div><textarea class="form-textarea" id="c-desc"></textarea></div>
+      <div class="form-group" style="margin-top:14px">
+        <div class="form-label">Cover Photo</div>
+        <div class="upload-zone">
+          <input type="file" accept="image/*" id="c-cover-file" onchange="previewSingle('c-cover-file','c-cover-prev')"/>
+          <div class="upload-zone-icon">📷</div><div class="upload-zone-text">Upload cover image</div>
+          <div class="upload-preview" id="c-cover-prev"></div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="submit-btn" id="c-submit-btn" onclick="saveCar()">ADD TO GARAGE</button>
+        <button class="secondary-btn" onclick="resetCarForm()">CLEAR</button>
+      </div>
+    </div>
+    <div class="sec-title">CURRENT CARS</div>
+    <div class="entries-list" id="car-entries"></div>
+  </div>
+
+  <div class="tab-panel" id="tab-sports">
+    <div class="form-card">
+      <div class="sec-title">SPORT FORM</div>
+      <div class="form-grid">
+        <div class="form-group"><div class="form-label">Sport Name *</div><input class="form-input" id="s-name"/></div>
+        <div class="form-group"><div class="form-label">Position / Subtitle</div><input class="form-input" id="s-sub"/></div>
+        <div class="form-group"><div class="form-label">Overall Rating</div><input class="form-input" type="number" min="1" max="99" id="s-rating"/></div>
+      </div>
+      <div class="form-group" style="margin-top:14px"><div class="form-label">Memory / Notes</div><textarea class="form-textarea" id="s-memory"></textarea></div>
+      <div style="margin-top:14px">
+        <div class="form-label" style="margin-bottom:8px">Stats</div>
+        <div id="stats-rows"></div>
+        <button class="small-btn" style="margin-top:8px" onclick="addStatRow()">+ Add Stat</button>
+      </div>
+      <div class="form-group" style="margin-top:14px">
+        <div class="form-label">Cover Photo *</div>
+        <div class="upload-zone">
+          <input type="file" accept="image/*" id="s-cover-file" onchange="previewSingle('s-cover-file','s-cover-prev')"/>
+          <div class="upload-zone-icon">📷</div><div class="upload-zone-text">Sport cover image</div>
+          <div class="upload-preview" id="s-cover-prev"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.06)">
+        <div class="sec-title" style="font-size:.68rem">FAVOURITE PLAYER</div>
+        <div class="form-grid">
+          <div class="form-group"><div class="form-label">Player Name</div><input class="form-input" id="s-fav-name"/></div>
+        </div>
+        <div class="form-group" style="margin-top:10px"><div class="form-label">About this player</div><textarea class="form-textarea" id="s-fav-info" style="min-height:70px"></textarea></div>
+        <div class="form-group" style="margin-top:10px">
+          <div class="form-label">Current Player Photos</div>
+          <div class="thumb-list" id="s-fav-existing"></div>
+        </div>
+        <div class="form-group" style="margin-top:10px">
+          <div class="form-label">Add Player Photos</div>
+          <div class="upload-zone">
+            <input type="file" accept="image/*" multiple id="s-fav-photos" onchange="previewMulti('s-fav-photos','s-fav-prev',3)"/>
+            <div class="upload-zone-icon">🌟</div><div class="upload-zone-text">Add up to 3 total</div>
+            <div class="upload-preview" id="s-fav-prev"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.06)">
+        <div class="sec-title" style="font-size:.68rem">SPORT GALLERY</div>
+        <div class="form-group"><div class="form-label">Current Gallery Photos</div><div class="thumb-list" id="s-gallery-existing"></div></div>
+        <div class="form-group" style="margin-top:10px">
+          <div class="form-label">Add Gallery Photos</div>
+          <div class="upload-zone">
+            <input type="file" accept="image/*" multiple id="s-gallery" onchange="previewMulti('s-gallery','s-gallery-prev',10)"/>
+            <div class="upload-zone-icon">🖼️</div><div class="upload-zone-text">Add up to 10 total</div>
+            <div class="upload-preview" id="s-gallery-prev"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button class="submit-btn" id="s-submit-btn" onclick="saveSport()">ADD SPORT</button>
+        <button class="secondary-btn" onclick="resetSportForm()">CLEAR</button>
+      </div>
+    </div>
+    <div class="sec-title">CURRENT SPORTS</div>
+    <div class="entries-list" id="sport-entries"></div>
+  </div>
+
+  <div class="tab-panel" id="tab-studio">
+    <div class="form-card">
+      <div class="sec-title">STUDIO CARD FORM</div>
+      <div class="form-grid">
+        <div class="form-group"><div class="form-label">Title *</div><input class="form-input" id="m-title"/></div>
+        <div class="form-group"><div class="form-label">Category</div><input class="form-input" id="m-cat"/></div>
+        <div class="form-group"><div class="form-label">Mood</div><input class="form-input" id="m-mood"/></div>
+      </div>
+      <div class="form-group" style="margin-top:14px"><div class="form-label">Description</div><textarea class="form-textarea" id="m-desc"></textarea></div>
+      <div class="form-group" style="margin-top:14px">
+        <div class="form-label">Cover Image *</div>
+        <div class="upload-zone">
+          <input type="file" accept="image/*" id="m-cover-file" onchange="previewSingle('m-cover-file','m-cover-prev')"/>
+          <div class="upload-zone-icon">🎨</div><div class="upload-zone-text">Cover art image</div>
+          <div class="upload-preview" id="m-cover-prev"></div>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:14px">
+        <div class="form-label">Audio Recordings (for new card)</div>
+        <div class="upload-zone">
+          <input type="file" accept="audio/*" multiple id="m-audio-files" onchange="previewAudios('m-audio-files','m-audio-prev')"/>
+          <div class="upload-zone-icon">🎙️</div><div class="upload-zone-text">Select one or more recordings</div>
+          <div class="upload-preview" id="m-audio-prev"></div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="submit-btn" id="m-submit-btn" onclick="saveStudioCard()">ADD MUSIC CARD</button>
+        <button class="secondary-btn" onclick="resetStudioForm()">CLEAR</button>
+      </div>
+    </div>
+
+    <div class="form-card">
+      <div class="sec-title">ADD RECORDING TO EXISTING CARD</div>
+      <div class="form-grid">
+        <div class="form-group"><div class="form-label">Select Card</div><select class="form-select" id="m-existing-select"></select></div>
+        <div class="form-group"><div class="form-label">Recording Name</div><input class="form-input" id="m-rec-name"/></div>
+      </div>
+      <div class="form-group" style="margin-top:12px">
+        <div class="form-label">Audio File</div>
+        <div class="upload-zone">
+          <input type="file" accept="audio/*" id="m-rec-file" onchange="previewAudios('m-rec-file','m-rec-prev')"/>
+          <div class="upload-zone-icon">🎵</div><div class="upload-zone-text">Select audio file</div>
+          <div class="upload-preview" id="m-rec-prev"></div>
+        </div>
+      </div>
+      <div class="toolbar"><button class="submit-btn" onclick="addRecordingToCard()">ADD RECORDING</button></div>
+    </div>
+
+    <div class="sec-title">CURRENT STUDIO CARDS</div>
+    <div class="entries-list" id="studio-entries"></div>
+  </div>
+
+  <div class="tab-panel" id="tab-travel">
+    <div class="form-card">
+      <div class="sec-title">TRAVEL FORM</div>
+      <div class="form-grid">
+        <div class="form-group"><div class="form-label">Place Name *</div><input class="form-input" id="t-place"/></div>
+        <div class="form-group"><div class="form-label">Country / Region</div><input class="form-input" id="t-country"/></div>
+        <div class="form-group"><div class="form-label">Year</div><input class="form-input" id="t-year"/></div>
+        <div class="form-group"><div class="form-label">Tags (comma separated)</div><input class="form-input" id="t-tags"/></div>
+      </div>
+      <div class="form-group" style="margin-top:14px"><div class="form-label">Trip Note</div><textarea class="form-textarea" id="t-note"></textarea></div>
+      <div class="form-grid" style="margin-top:14px">
+        <div class="form-group"><div class="form-label">Favourite Moment</div><input class="form-input" id="t-moment"/></div>
+        <div class="form-group"><div class="form-label">Best Food</div><input class="form-input" id="t-food"/></div>
+        <div class="form-group"><div class="form-label">Would Revisit?</div><select class="form-select" id="t-revisit"><option value="true">Yes</option><option value="false">No</option></select></div>
+      </div>
+      <div class="form-group" style="margin-top:14px">
+        <div class="form-label">Cover Photo *</div>
+        <div class="upload-zone">
+          <input type="file" accept="image/*" id="t-cover-file" onchange="previewSingle('t-cover-file','t-cover-prev')"/>
+          <div class="upload-zone-icon">🌍</div><div class="upload-zone-text">Destination cover image</div>
+          <div class="upload-preview" id="t-cover-prev"></div>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:14px"><div class="form-label">Current Gallery</div><div class="thumb-list" id="t-gallery-existing"></div></div>
+      <div class="form-group" style="margin-top:14px">
+        <div class="form-label">Add Gallery Photos</div>
+        <div class="upload-zone">
+          <input type="file" accept="image/*" multiple id="t-gallery" onchange="previewMulti('t-gallery','t-gallery-prev',10)"/>
+          <div class="upload-zone-icon">📸</div><div class="upload-zone-text">Add up to 10 total photos</div>
+          <div class="upload-preview" id="t-gallery-prev"></div>
+        </div>
+      </div>
+      <div class="toolbar">
+        <button class="submit-btn" id="t-submit-btn" onclick="saveTravel()">ADD DESTINATION</button>
+        <button class="secondary-btn" onclick="resetTravelForm()">CLEAR</button>
+      </div>
+    </div>
+    <div class="sec-title">CURRENT TRIPS</div>
+    <div class="entries-list" id="travel-entries"></div>
+  </div>
+
+  <div class="tab-panel" id="tab-profile">
+    <div class="form-card">
+      <div class="sec-title">PROFILE SETTINGS</div>
+      <div class="form-grid">
+        <div class="form-group"><div class="form-label">Name</div><input class="form-input" id="p-name"></div>
+        <div class="form-group"><div class="form-label">Nickname</div><input class="form-input" id="p-nickname"></div>
+        <div class="form-group"><div class="form-label">Tagline</div><input class="form-input" id="p-tagline"></div>
+        <div class="form-group"><div class="form-label">Profile Photo</div>
+          <div class="upload-zone">
+            <input type="file" accept="image/*" id="p-image-file" onchange="previewSingle('p-image-file','p-image-prev')"/>
+            <div class="upload-zone-icon">👤</div><div class="upload-zone-text">Upload profile image</div>
+            <div class="upload-preview" id="p-image-prev"></div>
+          </div>
+        </div>
+        <div class="form-group"><div class="form-label">Favourite Team</div><input class="form-input" id="p-team"></div>
+        <div class="form-group"><div class="form-label">Favourite Car</div><input class="form-input" id="p-car"></div>
+        <div class="form-group"><div class="form-label">Favourite Genre</div><input class="form-input" id="p-genre"></div>
+        <div class="form-group"><div class="form-label">Favourite Place</div><input class="form-input" id="p-place"></div>
+      </div>
+      <div class="form-group" style="margin-top:14px"><div class="form-label">Bio</div><textarea class="form-textarea" id="p-bio"></textarea></div>
+      <div class="form-group" style="margin-top:14px"><div class="form-label">Favourite Quote</div><textarea class="form-textarea" id="p-quote" style="min-height:70px"></textarea></div>
+      <div style="margin-top:14px">
+        <div class="form-label" style="margin-bottom:8px">Profile Stats</div>
+        <div id="profile-stats-rows"></div>
+        <button class="small-btn" style="margin-top:8px" onclick="addProfileStatRow()">+ Add Profile Stat</button>
+      </div>
+      <div class="toolbar"><button class="submit-btn" onclick="saveProfile()">SAVE PROFILE</button><button class="secondary-btn" onclick="loadProfileForm()">RESET TO SAVED</button></div>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tab-achievements">
+    <div class="form-card">
+      <div class="sec-title">ACHIEVEMENT FORM</div>
+      <div class="form-grid">
+        <div class="form-group"><div class="form-label">Icon</div><input class="form-input" id="a-icon" placeholder="🏆"></div>
+        <div class="form-group"><div class="form-label">Title</div><input class="form-input" id="a-title"></div>
+        <div class="form-group"><div class="form-label">Subtitle</div><input class="form-input" id="a-subtitle"></div>
+        <div class="form-group"><div class="form-label">Rarity</div>
+          <select class="form-select" id="a-rarity">
+            <option>Legendary</option><option>Epic</option><option>Rare</option><option>Common</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:14px"><div class="form-label">Description</div><textarea class="form-textarea" id="a-desc"></textarea></div>
+      <div class="toolbar"><button class="submit-btn" id="a-submit-btn" onclick="saveAchievement()">ADD ACHIEVEMENT</button><button class="secondary-btn" onclick="resetAchievementForm()">CLEAR</button></div>
+    </div>
+    <div class="sec-title">CURRENT ACHIEVEMENTS</div>
+    <div class="entries-list" id="achievement-entries"></div>
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = window.SUPABASE_URL || 'https://tffoycipaduwqrkpbpji.supabase.co';
+const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || 'sb_publishable_j6UPDgDfoRR_lER1VSlOfw_mvfGGtGH';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const BUCKET_IMAGES = 'site-images';
+const BUCKET_AUDIO = 'site-audio';
+
+const state = {
+  editing:{ car:null, sport:null, studio:null, travel:null, achievement:null },
+  sport:{ coverImage:null, favPhotos:[], gallery:[] },
+  travel:{ coverImage:null, gallery:[] },
+  studio:{ coverImage:null },
+  profile:{ profileImage:null },
+  data:{
+    cars:[],
+    sports:[],
+    studio:[],
+    travel:[],
+    profile:null,
+    highlights:[]
+  }
+};
+
+const TABLES = {
+  cars:'cars',
+  carImages:'car_images',
+  sports:'sports',
+  sportStats:'sport_stats',
+  sportFavPhotos:'sport_fav_player_photos',
+  sportGalleryPhotos:'sport_gallery_photos',
+  studio:'studio_items',
+  studioRecordings:'studio_recordings',
+  travel:'travel_items',
+  travelTags:'travel_tags',
+  travelPhotos:'travel_photos',
+  profile:'site_profile',
+  profileStats:'profile_stats',
+  highlights:'highlights',
+  profiles:'profiles'
+};
+
+let _toastT;
+function toast(msg, good=true){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.borderColor=good?'rgba(48,214,138,.4)':'rgba(255,69,58,.4)';
+  t.style.color=good?'#30d68a':'#ff453a';
+  t.style.opacity='1';
+  clearTimeout(_toastT);
+  _toastT=setTimeout(()=>t.style.opacity='0',3200);
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));}
+function uid(prefix='id'){ return `${prefix}_${crypto.randomUUID()}`; }
+
+function showLogin(){
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('admin-app').style.display='none';
+}
+function showAdmin(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('admin-app').style.display='block';
+}
+
+async function getCurrentUser(){
+  const { data, error } = await supabaseClient.auth.getUser();
+  if (error) return null;
+  return data?.user || null;
+}
+
+async function ensureAdminSession(){
+  const user = await getCurrentUser();
+  if(!user) return false;
+  const { data, error } = await supabaseClient
+    .from(TABLES.profiles)
+    .select('is_admin')
+    .eq('id', user.id)
+    .single();
+  if(error || !data?.is_admin) return false;
+  return true;
+}
+
+async function doLogin(){
+  const email=document.getElementById('email-input').value.trim();
+  const password=document.getElementById('pw-input').value;
+  const e=document.getElementById('login-err');
+  e.textContent='';
+  if(!email || !password){
+    e.textContent='Email and password are required.';
+    return;
+  }
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  if(error){
+    e.textContent=error.message || 'Login failed.';
+    setTimeout(()=>e.textContent='',3500);
+    return;
+  }
+  const ok = await ensureAdminSession();
+  if(!ok){
+    await supabaseClient.auth.signOut();
+    e.textContent='This account is not authorised as admin.';
+    setTimeout(()=>e.textContent='',3500);
+    return;
+  }
+  showAdmin();
+  await initAdmin();
+}
+
+async function doLogout(){
+  await supabaseClient.auth.signOut();
+  location.reload();
+}
+
+window.doLogin = doLogin;
+window.doLogout = doLogout;
+
+function switchTab(name,ev){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  if(ev && ev.currentTarget) ev.currentTarget.classList.add('active');
+}
+window.switchTab = switchTab;
+
+function fileToDataUrl(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+async function previewSingle(inputId, prevId){
+  const file=document.getElementById(inputId).files[0], prev=document.getElementById(prevId);
+  if(!file||!prev) return;
+  prev.innerHTML=`<img src="${await fileToDataUrl(file)}" style="width:90px;height:70px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.12)"/>`;
+}
+async function previewMulti(inputId, prevId, max){
+  const files=Array.from(document.getElementById(inputId).files).slice(0,max);
+  const prev=document.getElementById(prevId); if(!prev) return;
+  const urls=await Promise.all(files.map(fileToDataUrl));
+  prev.innerHTML=urls.map(u=>`<img src="${u}" style="width:70px;height:70px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.1)"/>`).join('');
+}
+function previewAudios(inputId, prevId){
+  const files=Array.from(document.getElementById(inputId).files);
+  const prev=document.getElementById(prevId); if(!prev) return;
+  prev.innerHTML=files.map(f=>`<div class="aud-chip">🎵 ${esc(f.name)}</div>`).join('');
+}
+window.previewSingle = previewSingle;
+window.previewMulti = previewMulti;
+window.previewAudios = previewAudios;
+
+function makeStoragePath(folder, filename){
+  const clean = filename.replace(/[^a-zA-Z0-9._-]+/g,'_');
+  return `${folder}/${Date.now()}_${crypto.randomUUID()}_${clean}`;
+}
+async function uploadFile(bucket, file, folder){
+  const path = makeStoragePath(folder, file.name);
+  const { error } = await supabaseClient.storage.from(bucket).upload(path, file, {
+    cacheControl: '3600',
+    upsert: false
+  });
+  if(error) throw error;
+  const { data } = supabaseClient.storage.from(bucket).getPublicUrl(path);
+  return data.publicUrl;
+}
+async function uploadImages(files, folder){
+  const out = [];
+  for(const file of files){
+    out.push(await uploadFile(BUCKET_IMAGES, file, folder));
+  }
+  return out;
+}
+async function uploadAudioFile(file, folder){
+  return uploadFile(BUCKET_AUDIO, file, folder);
+}
+
+async function fetchCars(){
+  const { data: cars, error } = await supabaseClient
+    .from(TABLES.cars)
+    .select('*')
+    .order('sort_order', { ascending:true })
+    .order('created_at', { ascending:true });
+  if(error) throw error;
+  state.data.cars = (cars || []).map(c=>({
+    id:c.id,
+    name:c.name,
+    brand:c.brand,
+    year:c.year,
+    tag:c.tag,
+    description:c.why_i_love_it || '',
+    coverImage:c.cover_image
+  }));
+  renderCars();
+}
+
+async function fetchSports(){
+  const { data: sports, error } = await supabaseClient
+    .from(TABLES.sports)
+    .select('*')
+    .order('sort_order', { ascending:true })
+    .order('created_at', { ascending:true });
+  if(error) throw error;
+  const ids = (sports || []).map(s=>s.id);
+  let stats=[], favPhotos=[], gallery=[];
+  if(ids.length){
+    const [statsRes, favRes, galRes] = await Promise.all([
+      supabaseClient.from(TABLES.sportStats).select('*').in('sport_id', ids).order('sort_order', { ascending:true }),
+      supabaseClient.from(TABLES.sportFavPhotos).select('*').in('sport_id', ids).order('sort_order', { ascending:true }),
+      supabaseClient.from(TABLES.sportGalleryPhotos).select('*').in('sport_id', ids).order('sort_order', { ascending:true })
+    ]);
+    if(statsRes.error) throw statsRes.error;
+    if(favRes.error) throw favRes.error;
+    if(galRes.error) throw galRes.error;
+    stats = statsRes.data || [];
+    favPhotos = favRes.data || [];
+    gallery = galRes.data || [];
+  }
+  state.data.sports = (sports || []).map(s=>({
+    id:s.id,
+    name:s.name,
+    subtitle:s.subtitle,
+    rating:s.rating,
+    coverImage:s.cover_image,
+    memories:s.memories,
+    stats: stats.filter(x=>x.sport_id===s.id).map(x=>({label:x.label, value:x.value})),
+    favPlayer:{
+      name:s.fav_player_name || '',
+      info:s.fav_player_info || '',
+      photos:favPhotos.filter(x=>x.sport_id===s.id).map(x=>x.image_url)
+    },
+    photos:gallery.filter(x=>x.sport_id===s.id).map(x=>x.image_url)
+  }));
+  renderSports();
+}
+
+async function fetchStudio(){
+  const { data: items, error } = await supabaseClient
+    .from(TABLES.studio)
+    .select('*')
+    .order('sort_order', { ascending:true })
+    .order('created_at', { ascending:true });
+  if(error) throw error;
+
+  let recordings = [];
+  if((items||[]).length){
+    const ids=(items||[]).map(x=>x.id);
+    const recRes = await supabaseClient
+      .from(TABLES.studioRecordings)
+      .select('*')
+      .in('studio_id', ids)
+      .order('sort_order', { ascending:true })
+      .order('created_at', { ascending:true });
+    if(recRes.error && !/relation .* does not exist/i.test(recRes.error.message||'')){
+      throw recRes.error;
+    }
+    recordings = recRes.data || [];
+  }
+
+  state.data.studio = (items || []).map(s=>({
+    id:s.id,
+    title:s.title,
+    category:s.category,
+    mood:s.mood,
+    description:s.description,
+    coverImage:s.cover_image,
+    recordings: recordings.filter(r=>r.studio_id===s.id).map(r=>({
+      id:r.id,
+      name:r.name,
+      fileUrl:r.file_url
+    }))
+  }));
+  renderStudio();
+}
+
+async function fetchTravel(){
+  const { data: items, error } = await supabaseClient
+    .from(TABLES.travel)
+    .select('*')
+    .order('sort_order', { ascending:true })
+    .order('created_at', { ascending:true });
+  if(error) throw error;
+  const ids=(items||[]).map(t=>t.id);
+  let tags=[], photos=[];
+  if(ids.length){
+    const [tagRes, photoRes] = await Promise.all([
+      supabaseClient.from(TABLES.travelTags).select('*').in('travel_id', ids).order('sort_order', { ascending:true }),
+      supabaseClient.from(TABLES.travelPhotos).select('*').in('travel_id', ids).order('sort_order', { ascending:true })
+    ]);
+    if(tagRes.error) throw tagRes.error;
+    if(photoRes.error) throw photoRes.error;
+    tags=tagRes.data||[];
+    photos=photoRes.data||[];
+  }
+  state.data.travel = (items || []).map(t=>({
+    id:t.id,
+    place:t.place,
+    country:t.country,
+    year:t.year,
+    note:t.note,
+    favoriteMoment:t.favorite_moment,
+    bestFood:t.best_food,
+    revisit:t.revisit,
+    coverImage:t.cover_image,
+    tags:tags.filter(x=>x.travel_id===t.id).map(x=>x.tag),
+    photos:photos.filter(x=>x.travel_id===t.id).map(x=>x.image_url)
+  }));
+  renderTravel();
+}
+
+async function fetchProfile(){
+  const { data: profile, error } = await supabaseClient
+    .from(TABLES.profile)
+    .select('*')
+    .order('created_at', { ascending:true })
+    .limit(1)
+    .maybeSingle();
+  if(error) throw error;
+  let stats=[];
+  if(profile){
+    const statsRes = await supabaseClient
+      .from(TABLES.profileStats)
+      .select('*')
+      .eq('profile_id', profile.id)
+      .order('sort_order', { ascending:true });
+    if(statsRes.error) throw statsRes.error;
+    stats = statsRes.data || [];
+  }
+  state.data.profile = profile ? {
+    id:profile.id,
+    name:profile.name || '',
+    nickname:profile.nickname || '',
+    tagline:profile.tagline || '',
+    bio:profile.bio || '',
+    profileImage:profile.profile_image || '',
+    favoriteTeam:profile.favorite_team || '',
+    favoriteCar:profile.favorite_car || '',
+    favoriteGenre:profile.favorite_genre || '',
+    favoritePlace:profile.favorite_place || '',
+    favoriteQuote:profile.favorite_quote || '',
+    stats:stats.map(s=>({label:s.label, value:s.value}))
+  } : null;
+  loadProfileForm();
+}
+
+async function fetchHighlights(){
+  const { data, error } = await supabaseClient
+    .from(TABLES.highlights)
+    .select('*')
+    .order('sort_order', { ascending:true })
+    .order('created_at', { ascending:true });
+  if(error) throw error;
+  state.data.highlights = (data || []).map(a=>({
+    id:a.id,
+    icon:a.icon,
+    title:a.title,
+    subtitle:a.subtitle,
+    description:a.description,
+    rarity:a.rarity
+  }));
+  renderAchievements();
+}
+
+async function fetchAll(){
+  await Promise.all([
+    fetchCars(),
+    fetchSports(),
+    fetchStudio(),
+    fetchTravel(),
+    fetchProfile(),
+    fetchHighlights()
+  ]);
+}
+
+function renderExistingThumbs(elId, arr, remover){
+  const el=document.getElementById(elId);
+  el.innerHTML=(arr||[]).map((src,i)=>`<div class="thumb"><img src="${src}"><button type="button" onclick="${remover}(${i})">✕</button></div>`).join('');
+}
+
+let statCount=0, profileStatCount=0;
+const DEFAULT_STATS=['Pace','Shooting','Passing','Dribbling','Defense','Physical'];
+function addStatRow(label='', val=80){
+  const id=++statCount, row=document.createElement('div');
+  row.className='inline-row'; row.id=`sr-${id}`; row.style.marginBottom='8px';
+  row.innerHTML=`<input class="form-input" style="flex:2" value="${esc(label)}" placeholder="Stat name" id="sl-${id}">
+    <input class="form-input" style="width:90px" type="number" min="0" max="99" value="${val}" id="sv-${id}">
+    <button class="small-btn danger" type="button" onclick="document.getElementById('sr-${id}').remove()">✕</button>`;
+  document.getElementById('stats-rows').appendChild(row);
+}
+function initStatRows(stats){
+  statCount=0; document.getElementById('stats-rows').innerHTML='';
+  (stats && stats.length ? stats : DEFAULT_STATS.map(l=>({label:l,value:80}))).forEach(s=>addStatRow(s.label,s.value));
+}
+function collectStats(){
+  return Array.from(document.querySelectorAll('#stats-rows [id^="sr-"]')).map(r=>{
+    const id=r.id.replace('sr-','');
+    return { label:document.getElementById('sl-'+id).value.trim(), value:parseInt(document.getElementById('sv-'+id).value||0,10) };
+  }).filter(s=>s.label);
+}
+function addProfileStatRow(label='', val=80){
+  const id=++profileStatCount, row=document.createElement('div');
+  row.className='inline-row'; row.id=`psr-${id}`; row.style.marginBottom='8px';
+  row.innerHTML=`<input class="form-input" style="flex:2" value="${esc(label)}" placeholder="Stat name" id="psl-${id}">
+    <input class="form-input" style="width:90px" type="number" min="0" max="99" value="${val}" id="psv-${id}">
+    <button class="small-btn danger" type="button" onclick="document.getElementById('psr-${id}').remove()">✕</button>`;
+  document.getElementById('profile-stats-rows').appendChild(row);
+}
+function initProfileStats(stats){
+  profileStatCount=0; document.getElementById('profile-stats-rows').innerHTML='';
+  (stats||[]).forEach(s=>addProfileStatRow(s.label,s.value));
+}
+function collectProfileStats(){
+  return Array.from(document.querySelectorAll('#profile-stats-rows [id^="psr-"]')).map(r=>{
+    const id=r.id.replace('psr-','');
+    return { label:document.getElementById('psl-'+id).value.trim(), value:parseInt(document.getElementById('psv-'+id).value||0,10) };
+  }).filter(s=>s.label);
+}
+window.addStatRow = addStatRow;
+window.addProfileStatRow = addProfileStatRow;
+
+function resetCarForm(){
+  state.editing.car=null;
+  ['c-name','c-brand','c-year','c-tag','c-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('c-cover-file').value='';
+  document.getElementById('c-cover-prev').innerHTML='';
+  document.getElementById('c-submit-btn').textContent='ADD TO GARAGE';
+}
+window.resetCarForm = resetCarForm;
+
+function startEditCar(id){
+  const c=state.data.cars.find(x=>x.id===id); if(!c) return;
+  state.editing.car=id;
+  document.getElementById('c-name').value=c.name||'';
+  document.getElementById('c-brand').value=c.brand||'';
+  document.getElementById('c-year').value=c.year||'';
+  document.getElementById('c-tag').value=c.tag||'';
+  document.getElementById('c-desc').value=c.description||'';
+  document.getElementById('c-cover-prev').innerHTML=c.coverImage?`<img src="${c.coverImage}" style="width:90px;height:70px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.12)"/>`:'';
+  document.getElementById('c-submit-btn').textContent='SAVE CAR';
+  document.querySelectorAll('.tab-btn').forEach(btn=>btn.classList.remove('active'));
+  document.querySelector('.tab-btn').classList.add('active');
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-cars').classList.add('active');
+}
+
+async function saveCar(){
+  try{
+    const name=document.getElementById('c-name').value.trim();
+    const brand=document.getElementById('c-brand').value.trim();
+    if(!name||!brand){toast('Name and Brand are required.',false);return;}
+    let coverImage = state.editing.car ? state.data.cars.find(c=>c.id===state.editing.car)?.coverImage || null : null;
+    const file=document.getElementById('c-cover-file').files[0];
+    if(file) coverImage=await uploadFile(BUCKET_IMAGES, file, 'cars');
+    if(!state.editing.car && !coverImage){toast('Cover photo required for a new car.',false);return;}
+
+    const payload = {
+      name,
+      brand,
+      year:document.getElementById('c-year').value.trim()||null,
+      tag:document.getElementById('c-tag').value.trim()||null,
+      why_i_love_it:document.getElementById('c-desc').value.trim()||null,
+      cover_image:coverImage,
+      updated_at:new Date().toISOString()
+    };
+
+    if(state.editing.car){
+      const { error } = await supabaseClient.from(TABLES.cars).update(payload).eq('id', state.editing.car);
+      if(error) throw error;
+      toast('Car updated! ✓');
+    } else {
+      payload.sort_order = state.data.cars.length;
+      const { error } = await supabaseClient.from(TABLES.cars).insert(payload);
+      if(error) throw error;
+      toast('Car added! ✓');
+    }
+    resetCarForm();
+    await fetchCars();
+  }catch(err){
+    toast(err.message || 'Failed to save car.', false);
+  }
+}
+window.saveCar = saveCar;
+
+async function delCar(id){
+  if(!confirm('Delete this car?')) return;
+  try{
+    const { error } = await supabaseClient.from(TABLES.cars).delete().eq('id', id);
+    if(error) throw error;
+    toast('Deleted.');
+    if(state.editing.car===id) resetCarForm();
+    await fetchCars();
+  }catch(err){
+    toast(err.message || 'Failed to delete car.', false);
+  }
+}
+window.delCar = delCar;
+window.startEditCar = startEditCar;
+
+function resetSportForm(){
+  state.editing.sport=null;
+  state.sport={coverImage:null,favPhotos:[],gallery:[]};
+  ['s-name','s-sub','s-rating','s-memory','s-fav-name','s-fav-info'].forEach(id=>document.getElementById(id).value='');
+  ['s-cover-file','s-fav-photos','s-gallery'].forEach(id=>document.getElementById(id).value='');
+  ['s-cover-prev','s-fav-prev','s-gallery-prev','s-fav-existing','s-gallery-existing'].forEach(id=>document.getElementById(id).innerHTML='');
+  document.getElementById('s-submit-btn').textContent='ADD SPORT';
+  initStatRows();
+}
+window.resetSportForm = resetSportForm;
+
+function removeFavPhoto(i){ state.sport.favPhotos.splice(i,1); renderExistingThumbs('s-fav-existing',state.sport.favPhotos,'removeFavPhoto'); }
+function removeSportGallery(i){ state.sport.gallery.splice(i,1); renderExistingThumbs('s-gallery-existing',state.sport.gallery,'removeSportGallery'); }
+window.removeFavPhoto = removeFavPhoto;
+window.removeSportGallery = removeSportGallery;
+
+function startEditSport(id){
+  const s=state.data.sports.find(x=>x.id===id); if(!s) return;
+  state.editing.sport=id;
+  state.sport={ coverImage:s.coverImage||null, favPhotos:[...(s.favPlayer?.photos||[])], gallery:[...(s.photos||[])] };
+  document.getElementById('s-name').value=s.name||'';
+  document.getElementById('s-sub').value=s.subtitle||'';
+  document.getElementById('s-rating').value=s.rating||80;
+  document.getElementById('s-memory').value=s.memories||'';
+  document.getElementById('s-fav-name').value=s.favPlayer?.name||'';
+  document.getElementById('s-fav-info').value=s.favPlayer?.info||'';
+  document.getElementById('s-cover-prev').innerHTML=s.coverImage?`<img src="${s.coverImage}" style="width:90px;height:70px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.12)"/>`:'';
+  renderExistingThumbs('s-fav-existing',state.sport.favPhotos,'removeFavPhoto');
+  renderExistingThumbs('s-gallery-existing',state.sport.gallery,'removeSportGallery');
+  initStatRows(s.stats||[]);
+  document.getElementById('s-submit-btn').textContent='SAVE SPORT';
+}
+window.startEditSport = startEditSport;
+
+async function replaceSportChildren(sportId, stats, favPhotos, galleryPhotos){
+  await Promise.all([
+    supabaseClient.from(TABLES.sportStats).delete().eq('sport_id', sportId),
+    supabaseClient.from(TABLES.sportFavPhotos).delete().eq('sport_id', sportId),
+    supabaseClient.from(TABLES.sportGalleryPhotos).delete().eq('sport_id', sportId)
+  ]);
+
+  if(stats.length){
+    const { error } = await supabaseClient.from(TABLES.sportStats).insert(
+      stats.map((s, i)=>({ sport_id:sportId, label:s.label, value:s.value, sort_order:i }))
+    );
+    if(error) throw error;
+  }
+  if(favPhotos.length){
+    const { error } = await supabaseClient.from(TABLES.sportFavPhotos).insert(
+      favPhotos.map((url, i)=>({ sport_id:sportId, image_url:url, sort_order:i }))
+    );
+    if(error) throw error;
+  }
+  if(galleryPhotos.length){
+    const { error } = await supabaseClient.from(TABLES.sportGalleryPhotos).insert(
+      galleryPhotos.map((url, i)=>({ sport_id:sportId, image_url:url, sort_order:i }))
+    );
+    if(error) throw error;
+  }
+}
+
+async function saveSport(){
+  try{
+    const name=document.getElementById('s-name').value.trim();
+    if(!name){toast('Sport name required.',false);return;}
+
+    let coverImage=state.sport.coverImage;
+    const coverFile=document.getElementById('s-cover-file').files[0];
+    if(coverFile) coverImage=await uploadFile(BUCKET_IMAGES, coverFile, 'sports/covers');
+    if(!coverImage){toast('Cover photo required.',false);return;}
+
+    const favSlots = Math.max(0, 3 - state.sport.favPhotos.length);
+    const gallerySlots = Math.max(0, 10 - state.sport.gallery.length);
+    const newFav = await uploadImages(Array.from(document.getElementById('s-fav-photos').files).slice(0, favSlots), 'sports/fav');
+    const newGal = await uploadImages(Array.from(document.getElementById('s-gallery').files).slice(0, gallerySlots), 'sports/gallery');
+
+    const payload = {
+      name,
+      subtitle:document.getElementById('s-sub').value.trim()||null,
+      rating:parseInt(document.getElementById('s-rating').value||80,10),
+      cover_image:coverImage,
+      memories:document.getElementById('s-memory').value.trim()||null,
+      fav_player_name:document.getElementById('s-fav-name').value.trim()||null,
+      fav_player_info:document.getElementById('s-fav-info').value.trim()||null,
+      updated_at:new Date().toISOString()
+    };
+
+    let sportId = state.editing.sport;
+    if(sportId){
+      const { error } = await supabaseClient.from(TABLES.sports).update(payload).eq('id', sportId);
+      if(error) throw error;
+    }else{
+      payload.sort_order = state.data.sports.length;
+      const { data, error } = await supabaseClient.from(TABLES.sports).insert(payload).select('id').single();
+      if(error) throw error;
+      sportId = data.id;
+    }
+
+    await replaceSportChildren(
+      sportId,
+      collectStats(),
+      [...state.sport.favPhotos, ...newFav].slice(0,3),
+      [...state.sport.gallery, ...newGal].slice(0,10)
+    );
+
+    toast(state.editing.sport ? 'Sport updated! ✓' : 'Sport added! ✓');
+    resetSportForm();
+    await fetchSports();
+  }catch(err){
+    toast(err.message || 'Failed to save sport.', false);
+  }
+}
+window.saveSport = saveSport;
+
+async function delSport(id){
+  if(!confirm('Delete this sport?')) return;
+  try{
+    const { error } = await supabaseClient.from(TABLES.sports).delete().eq('id', id);
+    if(error) throw error;
+    toast('Deleted.');
+    if(state.editing.sport===id) resetSportForm();
+    await fetchSports();
+  }catch(err){
+    toast(err.message || 'Failed to delete sport.', false);
+  }
+}
+window.delSport = delSport;
+
+function resetStudioForm(){
+  state.editing.studio=null;
+  state.studio={coverImage:null};
+  ['m-title','m-cat','m-mood','m-desc'].forEach(id=>document.getElementById(id).value='');
+  ['m-cover-file','m-audio-files'].forEach(id=>document.getElementById(id).value='');
+  ['m-cover-prev','m-audio-prev'].forEach(id=>document.getElementById(id).innerHTML='');
+  document.getElementById('m-submit-btn').textContent='ADD MUSIC CARD';
+}
+window.resetStudioForm = resetStudioForm;
+
+function startEditStudio(id){
+  const s=state.data.studio.find(x=>x.id===id); if(!s) return;
+  state.editing.studio=id; state.studio={coverImage:s.coverImage||null};
+  document.getElementById('m-title').value=s.title||'';
+  document.getElementById('m-cat').value=s.category||'';
+  document.getElementById('m-mood').value=s.mood||'';
+  document.getElementById('m-desc').value=s.description||'';
+  document.getElementById('m-cover-prev').innerHTML=s.coverImage?`<img src="${s.coverImage}" style="width:90px;height:70px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.12)"/>`:'';
+  document.getElementById('m-submit-btn').textContent='SAVE MUSIC CARD';
+}
+window.startEditStudio = startEditStudio;
+
+async function saveStudioCard(){
+  try{
+    const title=document.getElementById('m-title').value.trim();
+    if(!title){toast('Title required.',false);return;}
+    const coverFile=document.getElementById('m-cover-file').files[0];
+    let coverImage=state.studio.coverImage;
+    if(coverFile) coverImage=await uploadFile(BUCKET_IMAGES, coverFile, 'studio/covers');
+    if(!coverImage){toast('Cover image required.',false);return;}
+
+    const payload = {
+      title,
+      category:document.getElementById('m-cat').value.trim()||null,
+      mood:document.getElementById('m-mood').value.trim()||null,
+      description:document.getElementById('m-desc').value.trim()||null,
+      cover_image:coverImage,
+      updated_at:new Date().toISOString()
+    };
+
+    let studioId = state.editing.studio;
+    if(studioId){
+      const { error } = await supabaseClient.from(TABLES.studio).update(payload).eq('id', studioId);
+      if(error) throw error;
+      toast('Studio card updated! ✓');
+    }else{
+      payload.sort_order = state.data.studio.length;
+      const { data, error } = await supabaseClient.from(TABLES.studio).insert(payload).select('id').single();
+      if(error) throw error;
+      studioId = data.id;
+
+      const audioFiles=Array.from(document.getElementById('m-audio-files').files);
+      if(audioFiles.length){
+        const rows=[];
+        for(let i=0;i<audioFiles.length;i++){
+          const af=audioFiles[i];
+          const fileUrl = await uploadAudioFile(af, 'studio/recordings');
+          rows.push({ studio_id:studioId, name:af.name.replace(/\.[^.]+$/,''), file_url:fileUrl, sort_order:i });
+        }
+        const recRes = await supabaseClient.from(TABLES.studioRecordings).insert(rows);
+        if(recRes.error) throw recRes.error;
+      }
+      toast('Music card added! ✓');
+    }
+
+    resetStudioForm();
+    await fetchStudio();
+    populateStudioSelect();
+  }catch(err){
+    if(/relation .*studio_recordings.* does not exist/i.test(err.message||'')){
+      toast('Please create the studio_recordings table first.', false);
+    }else{
+      toast(err.message || 'Failed to save studio card.', false);
+    }
+  }
+}
+window.saveStudioCard = saveStudioCard;
+
+async function addRecordingToCard(){
+  try{
+    const studioId=document.getElementById('m-existing-select').value;
+    const file=document.getElementById('m-rec-file').files[0];
+    if(!studioId||!file){toast('Select a card and choose an audio file.',false);return;}
+    const recName=document.getElementById('m-rec-name').value.trim()||file.name.replace(/\.[^.]+$/,'');
+    const fileUrl = await uploadAudioFile(file, 'studio/recordings');
+    const current = state.data.studio.find(x=>x.id===studioId);
+    const sortOrder = current?.recordings?.length || 0;
+    const { error } = await supabaseClient.from(TABLES.studioRecordings).insert({
+      studio_id:studioId,
+      name:recName,
+      file_url:fileUrl,
+      sort_order:sortOrder
+    });
+    if(error) throw error;
+    document.getElementById('m-rec-name').value='';
+    document.getElementById('m-rec-file').value='';
+    document.getElementById('m-rec-prev').innerHTML='';
+    toast('Recording added! ✓');
+    await fetchStudio();
+  }catch(err){
+    if(/relation .*studio_recordings.* does not exist/i.test(err.message||'')){
+      toast('Please create the studio_recordings table first.', false);
+    }else{
+      toast(err.message || 'Failed to add recording.', false);
+    }
+  }
+}
+window.addRecordingToCard = addRecordingToCard;
+
+async function delRecording(studioId, recId){
+  if(!confirm('Delete this recording?')) return;
+  try{
+    const { error } = await supabaseClient.from(TABLES.studioRecordings).delete().eq('id', recId).eq('studio_id', studioId);
+    if(error) throw error;
+    toast('Recording deleted.');
+    await fetchStudio();
+  }catch(err){
+    toast(err.message || 'Failed to delete recording.', false);
+  }
+}
+window.delRecording = delRecording;
+
+async function delStudio(id){
+  if(!confirm('Delete this card and its recordings?')) return;
+  try{
+    const { error } = await supabaseClient.from(TABLES.studio).delete().eq('id', id);
+    if(error) throw error;
+    toast('Deleted.');
+    if(state.editing.studio===id) resetStudioForm();
+    await fetchStudio();
+    populateStudioSelect();
+  }catch(err){
+    toast(err.message || 'Failed to delete studio card.', false);
+  }
+}
+window.delStudio = delStudio;
+
+function populateStudioSelect(){
+  const sel=document.getElementById('m-existing-select');
+  sel.innerHTML=state.data.studio.map(i=>`<option value="${i.id}">${esc(i.title)}</option>`).join('');
+}
+
+function resetTravelForm(){
+  state.editing.travel=null;
+  state.travel={coverImage:null,gallery:[]};
+  ['t-place','t-country','t-year','t-tags','t-note','t-moment','t-food'].forEach(id=>document.getElementById(id).value='');
+  ['t-cover-file','t-gallery'].forEach(id=>document.getElementById(id).value='');
+  ['t-cover-prev','t-gallery-prev','t-gallery-existing'].forEach(id=>document.getElementById(id).innerHTML='');
+  document.getElementById('t-revisit').value='true';
+  document.getElementById('t-submit-btn').textContent='ADD DESTINATION';
+}
+window.resetTravelForm = resetTravelForm;
+
+function removeTravelGallery(i){ state.travel.gallery.splice(i,1); renderExistingThumbs('t-gallery-existing',state.travel.gallery,'removeTravelGallery'); }
+window.removeTravelGallery = removeTravelGallery;
+
+function startEditTravel(id){
+  const t=state.data.travel.find(x=>x.id===id); if(!t) return;
+  state.editing.travel=id; state.travel={coverImage:t.coverImage||null,gallery:[...(t.photos||[])]};
+  document.getElementById('t-place').value=t.place||'';
+  document.getElementById('t-country').value=t.country||'';
+  document.getElementById('t-year').value=t.year||'';
+  document.getElementById('t-tags').value=(t.tags||[]).join(', ');
+  document.getElementById('t-note').value=t.note||'';
+  document.getElementById('t-moment').value=t.favoriteMoment||'';
+  document.getElementById('t-food').value=t.bestFood||'';
+  document.getElementById('t-revisit').value=t.revisit?'true':'false';
+  document.getElementById('t-cover-prev').innerHTML=t.coverImage?`<img src="${t.coverImage}" style="width:90px;height:70px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.12)"/>`:'';
+  renderExistingThumbs('t-gallery-existing',state.travel.gallery,'removeTravelGallery');
+  document.getElementById('t-submit-btn').textContent='SAVE DESTINATION';
+}
+window.startEditTravel = startEditTravel;
+
+async function replaceTravelChildren(travelId, tags, photos){
+  await Promise.all([
+    supabaseClient.from(TABLES.travelTags).delete().eq('travel_id', travelId),
+    supabaseClient.from(TABLES.travelPhotos).delete().eq('travel_id', travelId)
+  ]);
+  if(tags.length){
+    const { error } = await supabaseClient.from(TABLES.travelTags).insert(
+      tags.map((tag, i)=>({ travel_id:travelId, tag, sort_order:i }))
+    );
+    if(error) throw error;
+  }
+  if(photos.length){
+    const { error } = await supabaseClient.from(TABLES.travelPhotos).insert(
+      photos.map((url, i)=>({ travel_id:travelId, image_url:url, sort_order:i }))
+    );
+    if(error) throw error;
+  }
+}
+
+async function saveTravel(){
+  try{
+    const place=document.getElementById('t-place').value.trim();
+    if(!place){toast('Place name required.',false);return;}
+    const coverFile=document.getElementById('t-cover-file').files[0];
+    let coverImage=state.travel.coverImage;
+    if(coverFile) coverImage=await uploadFile(BUCKET_IMAGES, coverFile, 'travel/covers');
+    if(!coverImage){toast('Cover photo required.',false);return;}
+    const slots = Math.max(0, 10 - state.travel.gallery.length);
+    const newGal = await uploadImages(Array.from(document.getElementById('t-gallery').files).slice(0, slots), 'travel/gallery');
+
+    const payload = {
+      place,
+      country:document.getElementById('t-country').value.trim()||null,
+      year:document.getElementById('t-year').value.trim()||null,
+      note:document.getElementById('t-note').value.trim()||null,
+      favorite_moment:document.getElementById('t-moment').value.trim()||null,
+      best_food:document.getElementById('t-food').value.trim()||null,
+      revisit:document.getElementById('t-revisit').value==='true',
+      cover_image:coverImage,
+      updated_at:new Date().toISOString()
+    };
+    const tags=(document.getElementById('t-tags').value.trim()?document.getElementById('t-tags').value.split(',').map(t=>t.trim()).filter(Boolean):[]);
+
+    let travelId = state.editing.travel;
+    if(travelId){
+      const { error } = await supabaseClient.from(TABLES.travel).update(payload).eq('id', travelId);
+      if(error) throw error;
+    }else{
+      payload.sort_order = state.data.travel.length;
+      const { data, error } = await supabaseClient.from(TABLES.travel).insert(payload).select('id').single();
+      if(error) throw error;
+      travelId = data.id;
+    }
+
+    await replaceTravelChildren(travelId, tags, [...state.travel.gallery, ...newGal].slice(0,10));
+    toast(state.editing.travel ? 'Destination updated! ✓' : 'Destination added! ✓');
+    resetTravelForm();
+    await fetchTravel();
+  }catch(err){
+    toast(err.message || 'Failed to save destination.', false);
+  }
+}
+window.saveTravel = saveTravel;
+
+async function delTravel(id){
+  if(!confirm('Delete destination?')) return;
+  try{
+    const { error } = await supabaseClient.from(TABLES.travel).delete().eq('id', id);
+    if(error) throw error;
+    toast('Deleted.');
+    if(state.editing.travel===id) resetTravelForm();
+    await fetchTravel();
+  }catch(err){
+    toast(err.message || 'Failed to delete destination.', false);
+  }
+}
+window.delTravel = delTravel;
+
+function loadProfileForm(){
+  const p=state.data.profile || {};
+  document.getElementById('p-name').value=p.name||'';
+  document.getElementById('p-nickname').value=p.nickname||'';
+  document.getElementById('p-tagline').value=p.tagline||'';
+  document.getElementById('p-bio').value=p.bio||'';
+  document.getElementById('p-team').value=p.favoriteTeam||'';
+  document.getElementById('p-car').value=p.favoriteCar||'';
+  document.getElementById('p-genre').value=p.favoriteGenre||'';
+  document.getElementById('p-place').value=p.favoritePlace||'';
+  document.getElementById('p-quote').value=p.favoriteQuote||'';
+  state.profile.profileImage=p.profileImage||null;
+  document.getElementById('p-image-prev').innerHTML=p.profileImage?`<img src="${p.profileImage}" style="width:90px;height:70px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,.12)"/>`:'';
+  initProfileStats(p.stats||[]);
+}
+window.loadProfileForm = loadProfileForm;
+
+async function saveProfile(){
+  try{
+    const imageFile=document.getElementById('p-image-file').files[0];
+    let profileImage=state.profile.profileImage;
+    if(imageFile) profileImage=await uploadFile(BUCKET_IMAGES, imageFile, 'profile');
+    const stats = collectProfileStats();
+    const payload={
+      name:document.getElementById('p-name').value.trim()||null,
+      nickname:document.getElementById('p-nickname').value.trim()||null,
+      tagline:document.getElementById('p-tagline').value.trim()||null,
+      bio:document.getElementById('p-bio').value.trim()||null,
+      profile_image:profileImage||null,
+      favorite_team:document.getElementById('p-team').value.trim()||null,
+      favorite_car:document.getElementById('p-car').value.trim()||null,
+      favorite_genre:document.getElementById('p-genre').value.trim()||null,
+      favorite_place:document.getElementById('p-place').value.trim()||null,
+      favorite_quote:document.getElementById('p-quote').value.trim()||null,
+      updated_at:new Date().toISOString()
+    };
+
+    let profileId = state.data.profile?.id || null;
+    if(profileId){
+      const { error } = await supabaseClient.from(TABLES.profile).update(payload).eq('id', profileId);
+      if(error) throw error;
+      await supabaseClient.from(TABLES.profileStats).delete().eq('profile_id', profileId);
+    }else{
+      const { data, error } = await supabaseClient.from(TABLES.profile).insert(payload).select('id').single();
+      if(error) throw error;
+      profileId = data.id;
+    }
+
+    if(stats.length){
+      const { error } = await supabaseClient.from(TABLES.profileStats).insert(
+        stats.map((s, i)=>({ profile_id:profileId, label:s.label, value:s.value, sort_order:i }))
+      );
+      if(error) throw error;
+    }
+
+    toast('Profile saved! ✓');
+    state.profile.profileImage=profileImage;
+    await fetchProfile();
+  }catch(err){
+    toast(err.message || 'Failed to save profile.', false);
+  }
+}
+window.saveProfile = saveProfile;
+
+function resetAchievementForm(){
+  state.editing.achievement=null;
+  ['a-icon','a-title','a-subtitle','a-desc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('a-rarity').value='Legendary';
+  document.getElementById('a-submit-btn').textContent='ADD ACHIEVEMENT';
+}
+window.resetAchievementForm = resetAchievementForm;
+
+function startEditAchievement(id){
+  const a=state.data.highlights.find(x=>x.id===id); if(!a) return;
+  state.editing.achievement=id;
+  document.getElementById('a-icon').value=a.icon||'';
+  document.getElementById('a-title').value=a.title||'';
+  document.getElementById('a-subtitle').value=a.subtitle||'';
+  document.getElementById('a-desc').value=a.description||'';
+  document.getElementById('a-rarity').value=a.rarity||'Legendary';
+  document.getElementById('a-submit-btn').textContent='SAVE ACHIEVEMENT';
+}
+window.startEditAchievement = startEditAchievement;
+
+async function saveAchievement(){
+  try{
+    const title=document.getElementById('a-title').value.trim();
+    if(!title){toast('Achievement title required.',false);return;}
+    const item={
+      icon:document.getElementById('a-icon').value.trim()||'🏆',
+      title,
+      subtitle:document.getElementById('a-subtitle').value.trim()||null,
+      description:document.getElementById('a-desc').value.trim()||null,
+      rarity:document.getElementById('a-rarity').value,
+      updated_at:new Date().toISOString()
+    };
+    if(state.editing.achievement){
+      const { error } = await supabaseClient.from(TABLES.highlights).update(item).eq('id', state.editing.achievement);
+      if(error) throw error;
+      toast('Achievement updated! ✓');
+    } else {
+      item.sort_order = state.data.highlights.length;
+      const { error } = await supabaseClient.from(TABLES.highlights).insert(item);
+      if(error) throw error;
+      toast('Achievement added! ✓');
+    }
+    resetAchievementForm();
+    await fetchHighlights();
+  }catch(err){
+    toast(err.message || 'Failed to save achievement.', false);
+  }
+}
+window.saveAchievement = saveAchievement;
+
+async function delAchievement(id){
+  if(!confirm('Delete achievement?')) return;
+  try{
+    const { error } = await supabaseClient.from(TABLES.highlights).delete().eq('id', id);
+    if(error) throw error;
+    toast('Deleted.');
+    if(state.editing.achievement===id) resetAchievementForm();
+    await fetchHighlights();
+  }catch(err){
+    toast(err.message || 'Failed to delete achievement.', false);
+  }
+}
+window.delAchievement = delAchievement;
+
+function renderCars(){
+  const items=state.data.cars, el=document.getElementById('car-entries');
+  el.innerHTML=items.length?items.map(c=>`<div class="entry-row"><img class="entry-thumb" src="${c.coverImage}" alt="">
+    <div class="entry-info"><div class="entry-name">${esc(c.name)}</div><div class="entry-meta">${esc(c.brand)} · ${esc(c.year||'—')} · ${esc(c.tag||'—')}</div></div>
+    <div class="entry-actions"><button class="edit-btn" onclick="startEditCar('${c.id}')">Edit</button><button class="delete-btn" onclick="delCar('${c.id}')">Delete</button></div></div>`).join(''):'<div class="hint">No entries yet.</div>';
+}
+
+function renderSports(){
+  const items=state.data.sports, el=document.getElementById('sport-entries');
+  el.innerHTML=items.length?items.map(s=>`<div class="entry-row"><img class="entry-thumb" src="${s.coverImage}" alt="">
+    <div class="entry-info"><div class="entry-name">${esc(s.name)}</div><div class="entry-meta">${esc(s.subtitle||'—')} · OVR ${esc(s.rating)} · ${(s.photos||[]).length} gallery photo(s) · ${(s.favPlayer?.photos||[]).length} player photo(s)</div></div>
+    <div class="entry-actions"><button class="edit-btn" onclick="startEditSport('${s.id}')">Edit</button><button class="delete-btn" onclick="delSport('${s.id}')">Delete</button></div></div>`).join(''):'<div class="hint">No entries yet.</div>';
+}
+
+function renderStudio(){
+  const items=state.data.studio, el=document.getElementById('studio-entries');
+  el.innerHTML=items.length?items.map(s=>`<div class="entry-row"><img class="entry-thumb" src="${s.coverImage}" alt="">
+    <div class="entry-info"><div class="entry-name">${esc(s.title)}</div><div class="entry-meta">${esc(s.category||'—')} · ${(s.recordings||[]).length} recording(s)</div>
+    <div class="sublist">${(s.recordings||[]).map(r=>`<div class="subitem"><div class="name">🎵 ${esc(r.name)}</div><button class="small-btn danger" onclick="delRecording('${s.id}','${r.id}')">Delete</button></div>`).join('')||'<div class="hint">No recordings yet.</div>'}</div></div>
+    <div class="entry-actions"><button class="edit-btn" onclick="startEditStudio('${s.id}')">Edit Card</button><button class="delete-btn" onclick="delStudio('${s.id}')">Delete Card</button></div></div>`).join(''):'<div class="hint">No entries yet.</div>';
+  populateStudioSelect();
+}
+
+function renderTravel(){
+  const items=state.data.travel, el=document.getElementById('travel-entries');
+  el.innerHTML=items.length?items.map(t=>`<div class="entry-row"><img class="entry-thumb" src="${t.coverImage}" alt="">
+    <div class="entry-info"><div class="entry-name">${esc(t.place)}</div><div class="entry-meta">${esc(t.country||'—')} · ${esc(t.year||'—')} · ${(t.photos||[]).length} photo(s)</div></div>
+    <div class="entry-actions"><button class="edit-btn" onclick="startEditTravel('${t.id}')">Edit</button><button class="delete-btn" onclick="delTravel('${t.id}')">Delete</button></div></div>`).join(''):'<div class="hint">No entries yet.</div>';
+}
+
+function renderAchievements(){
+  const items=state.data.highlights, el=document.getElementById('achievement-entries');
+  el.innerHTML=items.length?items.map(a=>`<div class="entry-row"><div class="entry-thumb-placeholder">${esc(a.icon||'🏆')}</div>
+    <div class="entry-info"><div class="entry-name">${esc(a.title)}</div><div class="entry-meta">${esc(a.subtitle||'—')} · ${esc(a.rarity||'Common')}</div></div>
+    <div class="entry-actions"><button class="edit-btn" onclick="startEditAchievement('${a.id}')">Edit</button><button class="delete-btn" onclick="delAchievement('${a.id}')">Delete</button></div></div>`).join(''):'<div class="hint">No achievements yet.</div>';
+}
+
+async function initAdmin(){
+  try{
+    initStatRows();
+    await fetchAll();
+    populateStudioSelect();
+  }catch(err){
+    toast(err.message || 'Failed to load admin data.', false);
+  }
+}
+
+async function bootstrap(){
+  const configured = !SUPABASE_URL.includes('PASTE_YOUR_SUPABASE') && !SUPABASE_ANON_KEY.includes('PASTE_YOUR_SUPABASE');
+  if(!configured){
+    showLogin();
+    document.getElementById('login-err').textContent='Set SUPABASE_URL and SUPABASE_ANON_KEY first.';
+    return;
+  }
+  const ok = await ensureAdminSession();
+  if(ok){
+    showAdmin();
+    await initAdmin();
+  }else{
+    showLogin();
+  }
+}
+
+bootstrap();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profile Mode — Stats Dashboard</title>
+  <link rel="stylesheet" href="shared.css"/>
+  <style>
+    /* ── PROFILE-SPECIFIC ── */
+    .profile-bg {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background: radial-gradient(ellipse 60% 60% at 50% 30%, rgba(10,132,255,0.08) 0%, transparent 70%);
+    }
+
+    .profile-layout {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px 40px 80px;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 30px;
+    }
+
+    /* ── PROFILE CARD ── */
+    .profile-card {
+      background: var(--gradient-card);
+      border: var(--border-card);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      position: sticky;
+      top: 90px;
+      height: fit-content;
+    }
+    .profile-card-photo-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 3/4;
+      overflow: hidden;
+    }
+    .profile-card-photo {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: top;
+      transition: transform 0.6s ease;
+    }
+    .profile-card:hover .profile-card-photo { transform: scale(1.04); }
+    .profile-photo-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, var(--gradient-card) 0%, transparent 55%);
+    }
+    .profile-card-info {
+      padding: 20px 22px 24px;
+    }
+    .profile-name {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      letter-spacing: 0.1em;
+      color: var(--white);
+      margin-bottom: 2px;
+    }
+    .profile-nickname {
+      font-family: var(--font-ui);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--blue-core);
+      margin-bottom: 12px;
+    }
+    .profile-tagline {
+      font-size: 0.85rem;
+      color: var(--text-body);
+      line-height: 1.6;
+      border-left: 2px solid var(--blue-core);
+      padding-left: 12px;
+      margin-bottom: 18px;
+    }
+    .profile-fav-list {
+      list-style: none;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .profile-fav-list li {
+      display: flex; align-items: baseline; gap: 10px;
+    }
+    .fav-label {
+      font-family: var(--font-ui);
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      min-width: 90px;
+    }
+    .fav-val {
+      font-family: var(--font-ui);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--silver-light);
+    }
+
+    /* ── RIGHT SIDE ── */
+    .profile-right { display: flex; flex-direction: column; gap: 24px; }
+
+    .panel {
+      background: var(--gradient-card);
+      border: var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 26px 28px;
+    }
+    .panel-title {
+      font-family: var(--font-ui);
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--blue-core);
+      margin-bottom: 18px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .panel-title::after {
+      content: ''; flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--blue-dim), transparent);
+    }
+
+    .bio-text {
+      font-size: 0.95rem;
+      color: var(--text-body);
+      line-height: 1.8;
+    }
+
+    /* Radar chart simulation using CSS */
+    .stat-bars { display: flex; flex-direction: column; gap: 14px; }
+
+    /* Quote */
+    .quote-box {
+      background: var(--blue-subtle);
+      border: 1px solid var(--blue-border);
+      border-radius: var(--radius-md);
+      padding: 20px 24px;
+      position: relative;
+    }
+    .quote-box::before {
+      content: '"';
+      position: absolute; top: -10px; left: 18px;
+      font-family: var(--font-display);
+      font-size: 4rem;
+      color: var(--blue-core);
+      line-height: 1;
+      opacity: 0.5;
+    }
+    .quote-text {
+      font-family: var(--font-ui);
+      font-size: 1rem;
+      font-weight: 500;
+      font-style: italic;
+      color: var(--white);
+      line-height: 1.6;
+    }
+
+    @media (max-width: 900px) {
+      .profile-layout { grid-template-columns: 1fr; padding: 20px; }
+      .profile-card { position: static; }
+    }
+  </style>
+</head>
+<body>
+<div class="bg-grid"></div>
+<div class="profile-bg"></div>
+<canvas id="particles-canvas"></canvas>
+
+<nav class="nav">
+  <a class="nav-logo" href="index.html">I<span>N</span>JAMAM</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="garage.html">Garage</a></li>
+    <li><a href="sports.html">Match Day</a></li>
+    <li><a href="studio.html">Studio</a></li>
+    <li><a href="travel.html">Travel</a></li>
+    <li><a href="profile.html" class="active">Profile</a></li>
+    <li><a href="highlights.html">Highlights</a></li>
+  </ul>
+  <button class="nav-menu-btn"><span></span><span></span><span></span></button>
+</nav>
+
+<div class="page-wrapper">
+  <a class="back-btn" href="index.html">← Back to Home</a>
+
+  <div class="section-header">
+    <div class="section-eyebrow">Mode 05</div>
+    <h1 class="section-title">PROFILE</h1>
+    <p class="section-subtitle">The complete dossier — stats, identity, and everything that makes me who I am.</p>
+  </div>
+
+  <div class="profile-layout" id="profile-layout">
+    <!-- Filled by JS -->
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="db.js"></script>
+<script src="scripts.js"></script>
+<script>
+const layout = document.getElementById('profile-layout');
+
+async function initProfile(){
+  try{
+    const p = (window.DB && DB.getProfile) ? await DB.getProfile() : profileData;
+
+    layout.innerHTML = `
+      <!-- LEFT: Profile card -->
+      <div class="profile-card fade-in">
+        <div class="profile-card-photo-wrap">
+          <img class="profile-card-photo" src="${p.profileImage}" alt="${p.name}"/>
+          <div class="profile-photo-overlay"></div>
+        </div>
+        <div class="profile-card-info">
+          <div class="profile-name">${p.name}</div>
+          <div class="profile-nickname">${p.nickname}</div>
+          <div class="profile-tagline">${p.tagline}</div>
+          <ul class="profile-fav-list">
+            <li><span class="fav-label">Team</span><span class="fav-val">${p.favoriteTeam}</span></li>
+            <li><span class="fav-label">Car</span><span class="fav-val">${p.favoriteCar}</span></li>
+            <li><span class="fav-label">Genre</span><span class="fav-val">${p.favoriteGenre}</span></li>
+            <li><span class="fav-label">Destination</span><span class="fav-val">${p.favoritePlace}</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- RIGHT: Stats and bio -->
+      <div class="profile-right">
+        <div class="panel fade-in" style="animation-delay:.1s">
+          <div class="panel-title">Biography</div>
+          <div class="bio-text">${p.bio}</div>
+        </div>
+
+        <div class="panel fade-in" style="animation-delay:.2s">
+          <div class="panel-title">Stat Sheet</div>
+          <div class="stat-bars">
+            ${(p.stats || []).map(s => `
+              <div class="stat-bar-wrap">
+                <div class="stat-bar-label">
+                  <span>${s.label}</span>
+                  <span>${s.value}</span>
+                </div>
+                <div class="stat-bar-track">
+                  <div class="stat-bar-fill" data-value="${s.value}"></div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="panel fade-in" style="animation-delay:.3s">
+          <div class="panel-title">Signature Quote</div>
+          <div class="quote-box">
+            <div class="quote-text">${p.favoriteQuote}</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    setTimeout(() => animateStatBars(), 300);
+  }catch(err){
+    console.error(err);
+    layout.innerHTML = '<div style="color:rgba(255,255,255,.45);padding:40px 20px;text-align:center;">Failed to load profile.</div>';
+  }
+}
+
+initProfile();
+</script>
+</body>
+</html>
