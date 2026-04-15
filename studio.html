@@ -380,7 +380,7 @@ function openPlayer(item){
   document.getElementById('recordings-list').innerHTML=`
     <div class="rec-list-title">RECORDINGS (${recs.length})</div>
     ${recs.length?recs.map((r,i)=>`
-      <div class="rec-item" id="rec-row-${i}" onclick="selectRecording(${i},'${escStr(r.name)}','${r.id}')">
+      <div class="rec-item" id="rec-row-${i}" onclick="selectRecording(${i},'${escStr(r.name)}','${escStr(r.file_url || r.fileUrl || '')}')">
         <button class="rec-play-btn">▶</button>
         <div class="rec-name">${r.name||'Recording '+(i+1)}</div>
         <div class="rec-duration" id="rec-dur-${i}">--:--</div>
@@ -420,51 +420,65 @@ function renderControlsShell(){
   document.getElementById('prog-track').addEventListener('click', seekTo);
 }
 
-async function selectRecording(idx, name, recId) {
-  // Stop and tear down previous audio without clearing the controls DOM
+function selectRecording(idx, name, audioUrl) {
+  // Stop previous audio first
   pauseAudio();
-  if(activeObjectURL){ URL.revokeObjectURL(activeObjectURL); activeObjectURL=null; }
 
   document.querySelectorAll('.rec-item').forEach(r=>r.classList.remove('active'));
-  const row=document.getElementById('rec-row-'+idx);
-  if(row)row.classList.add('active');
-  activeRecIdx=idx;
+  const row = document.getElementById('rec-row-' + idx);
+  if (row) row.classList.add('active');
+  activeRecIdx = idx;
 
-  // Show loading hint
-  setNoAudioMsg('Loading…');
-  showTransport(false);
-
-  // Fetch blob from IndexedDB → object URL
-  let url=null;
-  try{ url = await DB.getRecordingURL(recId); }
-  catch(e){ console.error('IDB read failed',e); }
-
-  if(!url){
+  if (!audioUrl) {
     setNoAudioMsg('⚠ Recording not found — please re-upload via admin.');
+    showTransport(false);
     return;
   }
 
-  activeObjectURL = url;
-  activeAudio = new Audio(url);
-
-  activeAudio.addEventListener('loadedmetadata', ()=>{
-    const el=document.getElementById('rec-dur-'+idx);
-    if(el) el.textContent = fmt(activeAudio.duration);
-    const dt=document.getElementById('dur-t');
-    if(dt) dt.textContent = fmt(activeAudio.duration);
-  });
-
-  activeAudio.addEventListener('ended', ()=>{
-    pauseAudio();          // update UI to paused state
-    updateProgBar();       // show final position
-  });
-
-  // Hide the "select a recording" message, show transport controls
   setNoAudioMsg('');
   showTransport(true);
 
-  // Start playing
-  playAudio();
+  activeObjectURL = audioUrl;
+  activeAudio = new Audio(audioUrl);
+  activeAudio.preload = 'auto';
+  activeAudio.crossOrigin = 'anonymous';
+
+  activeAudio.addEventListener('loadedmetadata', () => {
+    const el = document.getElementById('rec-dur-' + idx);
+    if (el) el.textContent = fmt(activeAudio.duration);
+    const dt = document.getElementById('dur-t');
+    if (dt) dt.textContent = fmt(activeAudio.duration);
+    updateProgBar();
+  });
+
+  activeAudio.addEventListener('ended', () => {
+    pauseAudio();
+    updateProgBar();
+  });
+
+  const playPromise = activeAudio.play();
+  isPlaying = true;
+
+  const btn = document.getElementById('play-btn');
+  if (btn) btn.textContent = '⏸';
+
+  document.getElementById('vinyl-disc').classList.add('spinning');
+  document.getElementById('tonearm').classList.add('playing');
+  animVU(true);
+  animEQ(true);
+  animPVU(true);
+
+  clearInterval(progTimer);
+  progTimer = setInterval(updateProgBar, 100);
+
+  if (playPromise && typeof playPromise.catch === 'function') {
+    playPromise.catch(err => {
+      console.warn('Playback blocked:', err);
+      pauseAudio();
+      setNoAudioMsg('Tap ▶ once more to start playback');
+      showTransport(true);
+    });
+  }
 }
 
 /* ── Show / hide helpers (never re-render innerHTML) ── */
